@@ -1,0 +1,1 @@
+git checkout master && git pull && git checkout -b feature/endpoints_creation
