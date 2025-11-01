@@ -77,3 +77,5 @@ Ten punkt końcowy przyjmuje od użytkownika fragment tekstu i nazwę zestawu, a
 6.  **Implementacja Rate Limiting**: Rozważ użycie gotowej biblioteki do implementacji mechanizmu w middleware Astro lub na poziomie samego endpointu.
 7.  **Testowanie**: Przygotuj testy (mogą być mockowane dla usługi zewnętrznej) weryfikujące poprawność generowania, obsługę błędów AI i walidację danych.
 
+
+

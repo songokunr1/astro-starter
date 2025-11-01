@@ -73,3 +73,4 @@ Ten punkt końcowy umożliwia uwierzytelnionemu użytkownikowi aktualizację tre
     - Po sukcesie zwróć `200` z zaktualizowanymi danymi.
 4.  **Testowanie**: Przygotuj testy weryfikujące: pomyślną aktualizację, próbę modyfikacji cudzej fiszki, błędy walidacji i brak autoryzacji.
 
+

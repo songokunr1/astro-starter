@@ -76,3 +76,5 @@ Ten punkt końcowy służy do zapisywania w bazie danych zestawu fiszek, który 
     - Po sukcesie zwróć `201` z danymi nowo utworzonego zestawu.
 5.  **Testowanie**: Przygotuj testy integracyjne dla całego przepływu: od generacji po akceptację, sprawdzając, czy dane poprawnie zapisują się w bazie danych.
 
+
+

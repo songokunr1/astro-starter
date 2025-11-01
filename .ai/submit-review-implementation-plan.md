@@ -74,3 +74,5 @@ Ten punkt końcowy służy do przesyłania przez użytkownika wyniku powtórki p
 4.  **Implementacja handlera `POST`**: Zaimplementuj walidację, wywołanie serwisu, obsługę błędów i zwracanie odpowiedzi.
 5.  **Testowanie**: Przygotuj testy jednostkowe dla algorytmu SM-2 oraz testy integracyjne dla całego przepływu, uwzględniając różne wartości `quality` i kolejne powtórki.
 
+
+

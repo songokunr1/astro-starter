@@ -74,3 +74,4 @@ Ten punkt końcowy pobiera listę fiszek, które są zaplanowane do powtórki dl
 5.  **Dodanie indeksu**: Utwórz migrację bazy danych, która dodaje złożony indeks na `learning_schedules(user_id, next_review_date)`.
 6.  **Testowanie**: Przygotuj testy weryfikujące: pobieranie sesji, filtrowanie po `setId`, działanie limitu i obsługę błędów.
 
+

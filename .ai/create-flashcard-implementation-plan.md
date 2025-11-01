@@ -81,3 +81,5 @@ Ten punkt końcowy umożliwia uwierzytelnionemu użytkownikowi ręczne dodanie n
     - W razie sukcesu zwróć `201` z nową fiszką.
 5.  **Testowanie**: Dodaj testy dla serwisu i punktu końcowego, weryfikując pomyślne tworzenie, błędy walidacji, próbę dodania do cudzego zestawu i brak autoryzacji.
 
+
+
