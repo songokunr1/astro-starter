@@ -1,4 +1,4 @@
-import type { AiGeneratedFlashcard, GenerateFlashcardsCommand, GenerateFlashcardsResponseDto } from "../../../types";
+import type { AiGeneratedFlashcard, GenerateFlashcardsCommand, GenerateFlashcardsResponseDto } from "@/types";
 
 const SYSTEM_PROMPT = `You are an expert in creating concise and effective flashcards.
 Your task is to generate a list of flashcards from the provided text.
@@ -37,7 +37,7 @@ export async function generateFlashcardsFromText(
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "openai/gpt-oss-20b:free",
+        model: "openai/gpt-3.5-turbo",
         messages: [
           { role: "system", content: SYSTEM_PROMPT },
           { role: "user", content: source_text },
