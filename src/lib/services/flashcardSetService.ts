@@ -1,9 +1,11 @@
 import type { SupabaseClient } from "@/db/supabase.client";
 import type {
   AcceptFlashcardsCommand,
+  CreateFlashcardSetCommand,
   FlashcardSetDetailDto,
   FlashcardSetSummaryDto,
   PaginatedResponseDto,
+  UpdateFlashcardSetCommand,
 } from "@/types";
 
 /**
@@ -67,6 +69,120 @@ export async function getFlashcardSets(
     },
   };
 }
+
+/**
+ * Creates a new, empty flashcard set for the authenticated user.
+ *
+ * @param supabase - The Supabase client instance.
+ * @param userId - The ID of the user creating the set.
+ * @param command - The command object containing the set's name and optional description.
+ * @returns A promise that resolves to an object containing the new set's summary DTO or an error.
+ */
+export async function createFlashcardSet(
+  supabase: SupabaseClient,
+  userId: string,
+  command: CreateFlashcardSetCommand
+): Promise<{ data: FlashcardSetSummaryDto | null; error: any }> {
+  const { data, error } = await supabase
+    .from("flashcard_sets")
+    .insert({
+      user_id: userId,
+      name: command.name,
+      description: command.description,
+    })
+    .select("id, name, description, created_at, updated_at")
+    .single();
+
+  if (error) {
+    // TODO: Add proper error logging
+    console.error("Error creating flashcard set:", error);
+  }
+
+  return { data, error };
+}
+
+/**
+ * Updates an existing flashcard set's details.
+ * The RLS policy ensures that a user can only update their own sets.
+ *
+ * @param supabase The Supabase client instance.
+ * @param setId The ID of the set to update.
+ * @param command The command object with the new name and/or description.
+ * @returns A promise that resolves to an object with the updated set data or an error.
+ */
+export async function updateFlashcardSet(
+  supabase: SupabaseClient,
+  setId: string,
+  command: UpdateFlashcardSetCommand
+): Promise<{ data: FlashcardSetSummaryDto | null; error: any }> {
+  const { data, error } = await supabase
+    .from("flashcard_sets")
+    .update({
+      name: command.name,
+      description: command.description,
+      updated_at: new Date().toISOString(), // Manually update the timestamp
+    })
+    .eq("id", setId)
+    .select("id, name, description, created_at, updated_at")
+    .single();
+
+  if (error) {
+    // TODO: Add proper error logging
+    console.error(`Error updating flashcard set ${setId}:`, error);
+  }
+
+  return { data, error };
+}
+
+/**
+ * Soft-deletes a flashcard set and all of its associated flashcards.
+ * It sets the `deleted_at` timestamp for the set and its cards.
+ *
+ * @param supabase The Supabase client instance.
+ * @param setId The ID of the set to delete.
+ * @returns A promise that resolves to an object containing an error if one occurred, or a count of affected rows.
+ */
+export async function deleteFlashcardSet(
+  supabase: SupabaseClient,
+  setId: string
+): Promise<{ error: any; count: number | null }> {
+  const timestamp = new Date().toISOString();
+
+  // Step 1: Soft-delete the flashcard set itself.
+  // The .select() here is to get the count of affected rows.
+  const { error: setError, count } = await supabase
+    .from("flashcard_sets")
+    .update({ deleted_at: timestamp })
+    .eq("id", setId)
+    .select();
+
+  if (setError) {
+    console.error(`Error soft-deleting set ${setId}:`, setError);
+    return { error: setError, count: null };
+  }
+
+  // If no rows were updated, it means the set was not found or the user didn't have permission.
+  if (count === 0) {
+    return { error: { message: "Not Found" }, count: 0 };
+  }
+
+  // Step 2: Soft-delete all flashcards within that set.
+  const { error: cardsError } = await supabase
+    .from("flashcards")
+    .update({ deleted_at: timestamp })
+    .eq("flashcard_set_id", setId);
+
+  if (cardsError) {
+    // This is a partial failure state. The set is deleted, but the cards are not.
+    // A database transaction or RPC function would prevent this.
+    // TODO: Add critical error logging for partial failures.
+    console.error(`Error soft-deleting flashcards for set ${setId}:`, cardsError);
+    return { error: cardsError, count: null };
+  }
+
+  return { error: null, count };
+}
+
 
 /**
  * Retrieves a single flashcard set with its flashcards by its ID, for the authenticated user.

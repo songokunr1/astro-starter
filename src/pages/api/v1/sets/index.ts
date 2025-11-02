@@ -1,6 +1,7 @@
 import type { APIRoute } from "astro";
 import { z } from "zod";
-import { getFlashcardSets } from "@/lib/services/flashcardSetService";
+import { getFlashcardSets, createFlashcardSet } from "@/lib/services/flashcardSetService";
+import type { CreateFlashcardSetCommand } from "@/types";
 
 export const prerender = false;
 
@@ -64,4 +65,53 @@ export const GET: APIRoute = async ({ url, locals }) => {
       { status: 500 }
     );
   }
+};
+
+const CreateSetSchema = z.object({
+  name: z.string().min(1, "Set name cannot be empty."),
+  description: z.string().optional().nullable(),
+});
+
+export const POST: APIRoute = async ({ request, locals }) => {
+  const { user, supabase } = locals;
+
+  if (!user) {
+    return new Response(JSON.stringify({ message: "Unauthorized" }), { status: 401 });
+  }
+
+  let command: CreateFlashcardSetCommand;
+  try {
+    command = await request.json();
+  } catch (error) {
+    return new Response(JSON.stringify({ message: "Invalid JSON body" }), { status: 400 });
+  }
+
+  const validationResult = CreateSetSchema.safeParse(command);
+
+  if (!validationResult.success) {
+    return new Response(
+      JSON.stringify({
+        message: "Invalid input data",
+        errors: validationResult.error.flatten(),
+      }),
+      { status: 400 }
+    );
+  }
+
+  const { data, error } = await createFlashcardSet(supabase, user.id, validationResult.data);
+
+  if (error) {
+    console.error("Error in createFlashcardSet:", error);
+    return new Response(
+      JSON.stringify({
+        message: "Failed to create flashcard set.",
+      }),
+      { status: 500 }
+    );
+  }
+
+  return new Response(JSON.stringify(data), {
+    status: 201,
+    headers: { "Content-Type": "application/json" },
+  });
 };
