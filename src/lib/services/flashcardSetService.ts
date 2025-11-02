@@ -49,6 +49,7 @@ export async function getFlashcardSets(
       { count: "exact" }
     )
     .eq("user_id", userId)
+    .is("deleted_at", null) // Filter out soft-deleted sets
     .order(sortBy, { ascending: sortOrder === "asc" })
     .range(startIndex, endIndex);
 
@@ -183,7 +184,6 @@ export async function deleteFlashcardSet(
   return { error: null, count };
 }
 
-
 /**
  * Retrieves a single flashcard set with its flashcards by its ID, for the authenticated user.
  *
@@ -215,6 +215,8 @@ export async function getFlashcardSetById(
     `
     )
     .eq("id", setId)
+    .is("deleted_at", null) // Ensure the set is not soft-deleted
+    .filter("flashcards.deleted_at", "is", "null")
     .maybeSingle();
 
   if (error) {

@@ -160,7 +160,10 @@ RLS will be enabled on all tables containing user-specific data to ensure users 
     -   **UPDATE**: `create policy "Users can update their own profile." on profiles for update using (auth.uid() = id);`
 
 -   **General Policy for other tables (example for `flashcard_sets`)**:
-    -   **ALL**: `create policy "Users can manage their own flashcard sets." on flashcard_sets for all using (auth.uid() = user_id);`
+    -   **SELECT**: `create policy "Users can view their own flashcard sets." on public.flashcard_sets for select using (auth.uid() = user_id and deleted_at is null);`
+    -   **INSERT**: `create policy "Users can create their own flashcard sets." on public.flashcard_sets for insert with check (auth.uid() = user_id);`
+    -   **UPDATE**: `create policy "Users can update their own flashcard sets." on public.flashcard_sets for update using (auth.uid() = user_id) with check (auth.uid() = user_id);`
+    -   **DELETE**: `create policy "Users can delete their own flashcard sets." on public.flashcard_sets for delete using (auth.uid() = user_id);`
     -   This policy template will be applied to `flashcards` (via sets), `learning_schedules`, `flashcard_ratings`, `learning_sessions`, and `user_stats`.
 
 ## 5. Additional Notes

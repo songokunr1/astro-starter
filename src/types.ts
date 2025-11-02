@@ -91,10 +91,13 @@ export type AcceptFlashcardsCommand = GenerateFlashcardsResponseDto;
  * Represents a flashcard due for a review session.
  * This is a composite type from `learning_schedules` and `flashcards` tables.
  */
-export type LearningSessionFlashcardDto = Pick<Tables<"flashcards">, "id" | "front" | "back"> & {
+export interface LearningSessionFlashcardDto {
+  id: Tables<"learning_schedules">["id"];
   flashcard_id: Tables<"flashcards">["id"];
+  front: Tables<"flashcards">["front"];
+  back: Tables<"flashcards">["back"];
   next_review_date: Tables<"learning_schedules">["next_review_date"];
-};
+}
 
 /**
  * Command for submitting a flashcard review.
