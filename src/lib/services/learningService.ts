@@ -1,5 +1,7 @@
-import type { LearningSessionFlashcardDto } from "@/types";
+import type { LearningSessionFlashcardDto, SubmitReviewCommand, SubmitReviewResponseDto } from "@/types";
 import type { SupabaseClient } from "@/db/supabase.client";
+import { sm2 } from "@/lib/sm2";
+import { add } from "date-fns/add";
 
 /**
  * Retrieves a list of flashcards scheduled for review for the current user.
@@ -67,4 +69,67 @@ export async function getReviewSession(
     .filter((item): item is LearningSessionFlashcardDto => item !== null);
 
   return { data: mappedData, error: null };
+}
+
+const DEFAULT_EASE_FACTOR = 2.5;
+
+export async function submitReview(
+  supabase: SupabaseClient,
+  userId: string,
+  command: SubmitReviewCommand,
+): Promise<{ data: SubmitReviewResponseDto | null; error: any }> {
+  const { flashcard_id, quality } = command;
+
+  const { data: schedule, error: scheduleError } = await supabase
+    .from("learning_schedules")
+    .select("*")
+    .eq("flashcard_id", flashcard_id)
+    .eq("user_id", userId)
+    .single();
+
+  if (scheduleError && scheduleError.code !== "PGRST116") {
+    // PGRST116: " esattamente un riga" (exactly one row) is not an error, it means no row found
+    return { data: null, error: scheduleError };
+  }
+
+  const repetitions = schedule?.repetitions ?? 0;
+  const easeFactor = schedule?.ease_factor ?? DEFAULT_EASE_FACTOR;
+  const interval = schedule?.interval ?? 0;
+
+  const sm2Result = sm2({ quality, repetitions, easeFactor, interval });
+
+  const nextReviewDate = add(new Date(), { days: sm2Result.interval });
+
+  const updatedSchedule = {
+    user_id: userId,
+    flashcard_id,
+    next_review_date: nextReviewDate.toISOString(),
+    interval: sm2Result.interval,
+    repetitions: sm2Result.repetitions,
+    ease_factor: sm2Result.easeFactor,
+  };
+
+  const { data: upsertedData, error: upsertError } = await supabase
+    .from("learning_schedules")
+    .upsert(updatedSchedule)
+    .select()
+    .single();
+
+  if (upsertError) {
+    return { data: null, error: upsertError };
+  }
+
+  const { error: sessionError } = await supabase.from("learning_sessions").insert({
+    user_id: userId,
+    flashcard_id,
+    quality,
+  });
+
+  if (sessionError) {
+    // Log this error, but don't fail the whole operation
+    // as the schedule has been updated successfully.
+    console.error("Failed to log review session:", sessionError);
+  }
+
+  return { data: upsertedData, error: null };
 }

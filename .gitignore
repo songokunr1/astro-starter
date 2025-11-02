@@ -26,3 +26,4 @@ pnpm-debug.log*
 .vscode/
 *key-from-backend.md
 .ai/test/*
+.ai/test/api/auth.ps1
