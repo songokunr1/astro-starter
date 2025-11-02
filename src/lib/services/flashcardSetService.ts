@@ -1,5 +1,72 @@
 import type { SupabaseClient } from "@/db/supabase.client";
-import type { AcceptFlashcardsCommand, FlashcardSetDetailDto, FlashcardSetSummaryDto } from "@/types";
+import type {
+  AcceptFlashcardsCommand,
+  FlashcardSetDetailDto,
+  FlashcardSetSummaryDto,
+  PaginatedResponseDto,
+} from "@/types";
+
+/**
+ * Defines the options for fetching flashcard sets, including pagination and sorting.
+ */
+interface GetFlashcardSetsOptions {
+  page: number;
+  pageSize: number;
+  sortBy: string;
+  sortOrder: "asc" | "desc";
+}
+
+/**
+ * Retrieves a paginated list of flashcard sets for a specific user.
+ *
+ * @param supabase - The Supabase client instance.
+ * @param userId - The ID of the user whose flashcard sets are to be retrieved.
+ * @param options - An object containing pagination and sorting parameters.
+ * @returns A promise that resolves to a paginated response DTO containing the flashcard sets.
+ */
+export async function getFlashcardSets(
+  supabase: SupabaseClient,
+  userId: string,
+  options: GetFlashcardSetsOptions
+): Promise<PaginatedResponseDto<FlashcardSetSummaryDto>> {
+  const { page, pageSize, sortBy, sortOrder } = options;
+  const startIndex = (page - 1) * pageSize;
+  const endIndex = startIndex + pageSize - 1;
+
+  // Query to fetch the paginated data
+  const dataQuery = supabase
+    .from("flashcard_sets")
+    .select(
+      `
+      id,
+      name,
+      description,
+      created_at,
+      updated_at
+    `,
+      { count: "exact" }
+    )
+    .eq("user_id", userId)
+    .order(sortBy, { ascending: sortOrder === "asc" })
+    .range(startIndex, endIndex);
+
+  const { data, error, count } = await dataQuery;
+
+  if (error) {
+    // TODO: Add proper error logging
+    console.error("Error fetching flashcard sets:", error);
+    throw new Error("Failed to fetch flashcard sets from the database.");
+  }
+
+  return {
+    data: data || [],
+    pagination: {
+      page,
+      pageSize,
+      total: count || 0,
+    },
+  };
+}
 
 /**
  * Retrieves a single flashcard set with its flashcards by its ID, for the authenticated user.

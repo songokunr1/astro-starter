@@ -119,3 +119,21 @@ export type SubmitReviewResponseDto = Pick<
  * `rating` is `1` for a thumbs-up or `-1` for a thumbs-down.
  */
 export type RateFlashcardCommand = Pick<TablesInsert<"flashcard_ratings">, "rating">;
+
+/**
+ * Represents pagination details in a paginated response.
+ */
+export interface Pagination {
+  page: number;
+  pageSize: number;
+  total: number;
+}
+
+/**
+ * A generic container for paginated API responses.
+ * @template T The type of the data items in the response.
+ */
+export interface PaginatedResponseDto<T> {
+  data: T[];
+  pagination: Pagination;
+}
