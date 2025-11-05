@@ -56,3 +56,5 @@ You often want to analyze data that includes "deleted" items to understand user 
 ### **Python/Django Analogy**
 
 This is a very common pattern in the Python world. In a framework like Django, you would implement this by creating a custom model manager that automatically filters out deleted items in every query, while still providing a way to access all items (including deleted ones) if needed for admin purposes. Our `SELECT` RLS policy acts as this automatic filter at the database level, which is even more secure and efficient.
+
+

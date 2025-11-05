@@ -99,3 +99,5 @@ Imagine your local database gets completely corrupted. Or a new developer joins 
 The `db reset` command will automatically wipe the database and then run **every single migration file** in your `migrations` folder in chronological order, building a perfect, up-to-date schema from scratch.
 
 This is the power of managing your database as code. It's the difference between a fragile, manual setup and a professional, automated development environment.
+
+

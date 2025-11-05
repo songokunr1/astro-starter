@@ -10,3 +10,5 @@ CREATE POLICY "Users can update their own flashcard sets."
 ON public.flashcard_sets FOR UPDATE
 USING (auth.uid() = user_id)
 WITH CHECK (auth.uid() = user_id);
+
+

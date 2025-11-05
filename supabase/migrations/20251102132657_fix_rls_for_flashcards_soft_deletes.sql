@@ -16,3 +16,5 @@ CREATE POLICY "Users can update flashcards of their own sets"
 ON public.flashcards FOR UPDATE
 USING (is_flashcard_set_owner(flashcard_set_id))
 WITH CHECK (is_flashcard_set_owner(flashcard_set_id));
+
+

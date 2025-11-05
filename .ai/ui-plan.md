@@ -2,121 +2,119 @@
 
 ## 1. Przegląd Struktury UI
 
-Architektura UI została zaprojektowana jako aplikacja jednostronicowa (SPA) z renderowaniem po stronie klienta, zbudowana na frameworku Astro z komponentami React. Wykorzystuje bibliotekę komponentów Shadcn/ui do zapewnienia spójności wizualnej i szybkiego rozwoju. Zarządzanie stanem serwera opiera się na TanStack Query (React Query) w celu efektywnego buforowania danych i synchronizacji z API. Kluczowe przepływy, takie jak generowanie fiszek przez AI, są zarządzane przez dedykowany kontekst React (`AIgenerationContext`), aby zapewnić płynne i stanowe doświadczenie użytkownika.
+Architektura UI została zaprojektowana jako aplikacja jednostronicowa (SPA) z renderowaniem po stronie klienta, zbudowana na frameworku Astro z komponentami React. Wykorzystuje bibliotekę komponentów Shadcn/ui do zapewnienia spójności wizualnej i szybkiego rozwoju. Zarządzanie stanem serwera opiera się na TanStack Query (React Query) w celu efektywnego buforowania danych i synchronizacji z API. Kluczowe przepływy, takie jak ręczne zarządzanie fiszkami czy w przyszłości generowanie fiszek przez AI, wykorzystują wyspecjalizowane widoki React (`ManualFlashcardForm`, planowany `AiGenerationFlow`) oparte na wspólnych providerach (`AuthProvider`, `QueryClientProvider`).
 
-Nawigacja opiera się na centralnym, statycznym panelu bocznym (sidebar), który zapewnia dostęp do wszystkich głównych sekcji aplikacji. Projekt kładzie nacisk na wzorce UX, takie jak optymistyczne aktualizacje, obsługa stanów pustych i ładowania, oraz jasne komunikaty zwrotne dla użytkownika za pomocą powiadomień typu toast.
+Nawigacja opiera się na statycznym panelu bocznym (sidebar) zapewniającym dostęp do wszystkich głównych sekcji. Projekt kładzie nacisk na wzorce UX, takie jak optymistyczne aktualizacje, obsługa stanów pustych i ładowania oraz jasne komunikaty zwrotne (toasty). Token JWT jest przechowywany w `sessionStorage` i odczytywany przez globalny kontekst, co umożliwia utrzymanie sesji między przeładowaniami stron.
 
 ## 2. Lista Widoków
 
-### Widok: Logowanie Deweloperskie
-- **Ścieżka**: `/dev-login` (dostępny tylko w trybie deweloperskim)
-- **Główny Cel**: Umożliwienie deweloperom szybkiego logowania się jako predefiniowany użytkownik w celu testowania zabezpieczonych tras i funkcjonalności.
-- **Kluczowe Informacje**: Formularz z danymi logowania.
-- **Kluczowe Komponenty**: `Input`, `Button`, `Card`.
-- **UX, Dostępność, Bezpieczeństwo**: Widok musi być wyłączony w buildach produkcyjnych. Powinien zawierać wyraźne ostrzeżenie, że jest to narzędzie wyłącznie deweloperskie.
+### Widok: Logowanie
+- **Ścieżka**: `/login`
+- **Główny Cel**: Uwierzytelnienie użytkownika i rozpoczęcie sesji aplikacji.
+- **Kluczowe Informacje**: Formularz (email, hasło), komunikaty walidacyjne, informacja o błędach API.
+- **Kluczowe Komponenty**: `Card`, `Form`, `Input`, `Button`, `Toast`.
+- **UX, Bezpieczeństwo**: Walidacja po stronie klienta i serwera, blokada przycisku podczas zapytań, zapisywanie tokenu w `sessionStorage`.
 
 ### Widok: Dashboard
 - **Ścieżka**: `/` lub `/dashboard`
-- **Główny Cel**: Stanowienie centralnego punktu startowego, oferującego szybki dostęp do kluczowych akcji i przegląd ostatniej aktywności.
-- **Kluczowe Informacje**: Lista ostatnio używanych zestawów fiszek, przyciski szybkiej akcji ("Generuj nowy zestaw z AI", "Rozpocznij naukę").
-- **Kluczowe Komponenty**: `Card`, `Button`, `Table` (dla listy zestawów).
-- **UX, Dostępność, Bezpieczeństwo**: Interfejs powinien być przejrzysty i intuicyjny. Akcje powinny być jasno oznaczone.
+- **Główny Cel**: Start aplikacji, szybki dostęp do najważniejszych akcji (manualne i AI).
+- **Kluczowe Informacje**: Ostatnie zestawy, skróty do `/generate` i planowanego `/generate-ai`.
+- **Kluczowe Komponenty**: `Card`, `Button`, `Table`.
 
 ### Widok: Moje Zestawy (Lista)
 - **Ścieżka**: `/sets`
-- **Główny Cel**: Umożliwienie użytkownikowi przeglądania, wyszukiwania i zarządzania wszystkimi swoimi zestawami fiszek.
-- **Kluczowe Informacje**: Paginowana tabela zestawów z kolumnami: Nazwa, Opis, Data modyfikacji.
-- **Kluczowe Komponenty**: `Table`, `Button` ("Stwórz nowy zestaw"), `Pagination`, `DropdownMenu` (dla akcji Edytuj/Usuń przy każdym zestawie).
-- **UX, Dostępność, Bezpieczeństwo**: Tabela powinna umożliwiać sortowanie. Paginacja typu "Załaduj więcej" upraszcza interfejs. Akcje na zestawie powinny wymagać potwierdzenia (np. usunięcie). W przypadku braku zestawów, widok powinien wyświetlać pomocny komunikat z wezwaniem do działania.
+- **Główny Cel**: Przegląd i zarządzanie wszystkimi zestawami.
+- **Kluczowe Informacje**: Paginacja, sortowanie, stany pustych danych.
+- **Kluczowe Komponenty**: `Table`, `DropdownMenu`, `Pagination`, `Dialog`.
+- **UX**: Potwierdzenia akcji destrukcyjnych, filtrowanie po nazwie (w planie).
 
 ### Widok: Szczegóły Zestawu
 - **Ścieżka**: `/sets/:setId`
-- **Główny Cel**: Wyświetlanie wszystkich fiszek w ramach jednego zestawu oraz umożliwienie zarządzania nimi.
-- **Kluczowe Informacje**: Nazwa i opis zestawu. Lista fiszek (awers i rewers).
-- **Kluczowe Komponenty**: `Card` (dla każdej fiszki), `Button` ("Dodaj nową fiszkę", "Rozpocznij naukę tego zestawu"), `Dialog` (do edycji/dodawania fiszek), `DropdownMenu` (dla akcji Edytuj/Usuń/Oceń przy fiszkach).
-- **UX, Dostępność, Bezpieczeństwo**: Operacje edycji i usuwania będą stosować wzorzec "Optimistic UI", aby interfejs był responsywny. Edycja w oknie modalnym (`Dialog`) zapobiega zmianie kontekstu.
+- **Główny Cel**: Podgląd i edycja fiszek w pojedynczym zestawie.
+- **Kluczowe Informacje**: Lista fiszek, metadane zestawu, statystyki nauki (w planie).
+- **Kluczowe Komponenty**: `Card`, `Button`, `Dialog`, `Form`.
+- **UX**: Edycja inline, optymistyczne aktualizacje, potwierdzenia usuwania.
 
-### Widok: Generator AI (Formularz)
+### Widok: Generator Fiszek (Manualny)
 - **Ścieżka**: `/generate`
-- **Główny Cel**: Udostępnienie interfejsu do wprowadzenia tekstu w celu wygenerowania fiszek przez AI.
-- **Kluczowe Informacje**: Formularz z polami "Nazwa zestawu" i "Tekst źródłowy".
-- **Kluczowe Komponenty**: `Input`, `Textarea`, `Button` ("Generuj fiszki"), `Form`.
-- **UX, Dostępność, Bezpieczeństwo**: Jasne instrukcje i ewentualny licznik znaków w polu tekstowym. Przycisk generowania powinien pokazywać stan ładowania, aby poinformować użytkownika o trwającym procesie. Walidacja formularza po stronie klienta.
+- **Główny Cel**: Ręczne tworzenie i edycja fiszek w obrębie zestawów.
+- **Kluczowe Informacje**: Lista zestawów (Select), formularz front/back, możliwość tworzenia nowego zestawu, lista istniejących fiszek z trybem edycji/usuń.
+- **Kluczowe Komponenty**: `Select`, `Input`, `Textarea`, `Card`, `Button`, `Toast`.
+- **UX**: Sekcja „Create new set” rozwijana tylko przy wyborze opcji „New set”, automatyczny wybór nowo utworzonego zestawu, blokada przycisków podczas mutacji, potwierdzenie `window.confirm` przy usuwaniu.
 
-### Widok: Generator AI (Podgląd)
-- **Ścieżka**: `/generate/preview`
-- **Główny Cel**: Umożliwienie użytkownikowi przeglądu, edycji i zatwierdzenia fiszek wygenerowanych przez AI przed ich trwałym zapisaniem.
-- **Kluczowe Informacje**: Nazwa proponowanego zestawu. Lista wygenerowanych, edytowalnych fiszek.
-- **Kluczowe Komponenty**: Lista edytowalnych kart (`Input`/`Textarea`), `Button` ("Zapisz zestaw", "Odrzuć"), przycisk do dodawania nowej fiszki, przycisk usuwania przy każdej fiszce.
-- **UX, Dostępność, Bezpieczeństwo**: Kluczowy ekran w przepływie użytkownika. Edycja inline musi być prosta i intuicyjna. Różnica między akcjami "Zapisz" i "Odrzuć" musi być wyraźnie zakomunikowana. Stan tego widoku jest zarządzany przez globalny kontekst, co oznacza, że odświeżenie strony może spowodować utratę danych – użytkownik powinien być o tym poinformowany.
+### Widok: Generator AI (Formularz – planowany)
+- **Ścieżka**: `/generate-ai`
+- **Główny Cel**: Pozyskanie tekstu źródłowego i parametrów do wygenerowania fiszek przez LLM.
+- **Kluczowe Informacje**: Formularz (nazwa zestawu, tekst źródłowy, liczba fiszek, język), stan wysyłki, logi postępu.
+- **Kluczowe Komponenty**: `Form`, `Textarea`, `Button` z loaderem, `Alert` na błędy API.
+- **UX**: Jasne instrukcje dot. formatu tekstu, wskazówka o limitach i czasie generowania, informacje o kosztach/limitach (jeśli dotyczy).
+
+### Widok: Generator AI (Podgląd – planowany)
+- **Ścieżka**: `/generate-ai/preview`
+- **Główny Cel**: Przegląd, korekta i zatwierdzenie zestawu wygenerowanego przez AI.
+- **Kluczowe Informacje**: Proponowana nazwa zestawu, edytowalna lista fiszek, akcje „Zapisz”/„Odrzuć”.
+- **Kluczowe Komponenty**: Edytowalne karty (`Input`, `Textarea`), `Button`, `Toast`.
+- **UX**: Informacja o utracie danych przy odświeżeniu (stan w kontekście), możliwość dodania/usunięcia fiszek przed akceptacją.
 
 ### Widok: Sesja Nauki
 - **Ścieżka**: `/learn`
-- **Główny Cel**: Przeprowadzenie użytkownika przez sesję nauki z wykorzystaniem algorytmu powtórek.
-- **Kluczowe Informacje**: Awers fiszki, a po odkryciu – rewers oraz przyciski do oceny jakości odpowiedzi (0-5).
-- **Kluczowe Komponenty**: `Card`, `Button` ("Pokaż odpowiedź"), zestaw przycisków oceny, `Progress` bar (pokazujący postęp sesji).
-- **UX, Dostępność, Bezpieczeństwo**: Interfejs powinien być minimalistyczny i wolny od rozpraszaczy. Znaczenie ocen (0-5) musi być jasno opisane (np. "Kompletnie nie wiem", "Idealnie"). Skróty klawiaturowe dla akcji "pokaż" i ocen znacznie poprawią użyteczność.
+- **Główny Cel**: Przeprowadzanie użytkownika przez sesję nauki.
+- **Kluczowe Informacje**: Treść fiszki, ocena (0-5), postęp.
+- **Kluczowe Komponenty**: `Card`, `Button`, `Progress`, skróty klawiaturowe.
 
 ### Widok: Profil Użytkownika
 - **Ścieżka**: `/profile`
-- **Główny Cel**: Zarządzanie ustawieniami konta użytkownika.
-- **Kluczowe Informacje**: Formularz do edycji nazwy użytkownika, adresu URL awatara, ustawień powiadomień. Przycisk wylogowania.
-- **Kluczowe Komponenty**: `Form`, `Input`, `Switch`, `Button` ("Zapisz zmiany", "Wyloguj").
-- **UX, Dostępność, Bezpieczeństwo**: Zapewnienie jasnego feedbacku po zapisaniu zmian (`Toast`). Funkcja wylogowania musi bezpiecznie usuwać wszystkie dane sesji po stronie klienta.
+- **Główny Cel**: Zarządzanie profilem i ustawieniami.
+- **Kluczowe Informacje**: Dane profilu, preferencje powiadomień, akcja wylogowania.
+- **Komponenty**: `Form`, `Input`, `Switch`, `Button`, `Toast`.
 
-## 3. Mapa Podróży Użytkownika (Główny Przepływ: Generowanie Zestawu z AI)
+## 3. Mapy Podróży Użytkownika
 
-1.  **Inicjacja**: Użytkownik na **Dashboardzie** (`/`) klika przycisk "Generuj nowy zestaw z AI".
-2.  **Przekierowanie**: Aplikacja przenosi użytkownika do widoku **Generatora AI** (`/generate`).
-3.  **Wprowadzanie Danych**: Użytkownik wpisuje nazwę dla nowego zestawu i wkleja tekst źródłowy w odpowiednie pola formularza.
-4.  **Generowanie**: Po kliknięciu "Generuj fiszki", aplikacja wysyła żądanie `POST /api/v1/ai/generate-flashcards`. Interfejs pokazuje stan ładowania.
-5.  **Przechowanie i Przekierowanie**: Odpowiedź z API (`temp_id`, `flashcards`) jest zapisywana w `AIgenerationContext`. Użytkownik jest automatycznie przekierowywany do widoku **Podglądu** (`/generate/preview`).
-6.  **Przegląd i Edycja**: Użytkownik przegląda wygenerowane fiszki. Może edytować treść każdej z nich, usuwać niechciane karty lub dodawać nowe.
-7.  **Decyzja Końcowa**:
-    *   **Akceptacja**: Użytkownik klika "Zapisz zestaw". Aplikacja wysyła zawartość `AIgenerationContext` na endpoint `POST /api/v1/ai/accept-flashcards`. Po sukcesie wyświetla powiadomienie `Toast` i przekierowuje do widoku **Szczegółów Zestawu** (`/sets/:newSetId`).
-    *   **Odrzucenie**: Użytkownik klika "Odrzuć". Kontekst `AIgenerationContext` jest czyszczony, a użytkownik jest przekierowywany z powrotem na **Dashboard** (`/`).
+### 3.1. Logowanie → Ręczne zarządzanie fiszkami
+1. Użytkownik trafia na `/login` i podaje dane uwierzytelniające.
+2. Po pozytywnej odpowiedzi API token JWT trafia do `sessionStorage`; użytkownik jest przekierowany na `/generate`.
+3. Strona `/generate` odczytuje token, ładuje dostępne zestawy i pokazuje formularz tworzenia fiszek.
+4. Użytkownik może:
+   - wybrać istniejący zestaw i dodać do niego fiszkę,
+   - kliknąć „New set”, rozwinąć formularz i utworzyć nowy zestaw,
+   - edytować lub usunąć istniejące fiszki w trybie inline,
+   - wylogować się przyciskiem „Log out” (czyszczenie tokenu + redirect).
+
+### 3.2. Generowanie AI (planowany przepływ)
+1. Użytkownik z `/dashboard` wybiera „Generate with AI” → `/generate-ai`.
+2. Podaje nazwę zestawu, język, tekst źródłowy, opcjonalne parametry (liczba fiszek, ton etc.).
+3. `POST /api/v1/ai/generate` rozpoczyna żądanie do zewnętrznego LLM (OpenRouter/OpenAI). Widok pokazuje loader i ewentualnie postęp.
+4. Po sukcesie dane (tymczasowy zestaw) trafiają do kontekstu `AiGenerationContext` i użytkownik jest przekierowany na `/generate-ai/preview`.
+5. Użytkownik przegląda/edytuje fiszki, może je zatwierdzić (`POST /api/v1/ai/accept`) lub odrzucić (czyszczenie kontekstu + redirect na `/dashboard`).
 
 ## 4. Układ i Struktura Nawigacji
 
-- **Nawigacja Główna**: Zostanie zaimplementowana jako statyczny, pionowy panel boczny (sidebar) po lewej stronie ekranu.
-- **Linki w Sidebarze**:
-    - Dashboard (`/`)
-    - Moje Zestawy (`/sets`)
-    - Generator AI (`/generate`)
-    - Nauka (`/learn`)
-- **Nawigacja Użytkownika**: W dolnej części sidebara lub w prawym górnym rogu ekranu znajdzie się menu użytkownika (`DropdownMenu`) dostępne po kliknięciu na awatar. Będzie ono zawierać linki do **Profilu Użytkownika** (`/profile`) oraz przycisk **Wyloguj**.
-- **Nawigacja Kontekstowa**: W widokach zagnieżdżonych, jak **Szczegóły Zestawu**, mogą być użyte ścieżki nawigacyjne (breadcrumbs) dla lepszej orientacji (np. `Moje Zestawy > Nazwa Zestawu`).
+- **Sidebar**: linki do `Dashboard`, `Moje Zestawy`, `Generate` (manualne), `Generate AI` (planowane), `Learn`.
+- **Menu użytkownika**: profil, ustawienia, wylogowanie.
+- **Breadcrumbs**: np. `Moje Zestawy > [nazwa zestawu]` dla widoków zagnieżdżonych.
 
 ## 5. Kluczowe Komponenty (Współdzielone)
 
-Poniższe komponenty z biblioteki Shadcn/ui będą stanowić podstawę systemu projektowego i będą używane w całej aplikacji:
-
-- **`Button`**: Do wszystkich akcji wykonywanych przez użytkownika.
-- **`Card`**: Do wizualnego grupowania powiązanych informacji (np. pojedyncza fiszka, sekcja na dashboardzie).
-- **`Dialog`**: Do wyświetlania formularzy edycji lub potwierdzeń bez opuszczania bieżącego widoku.
-- **`Toast`**: Do dostarczania globalnych, nieblokujących powiadomień (błędy, sukcesy).
-- **`Table`**: Do prezentacji danych tabelarycznych (np. lista zestawów).
-- **`Input`, `Textarea`, `Label`**: Standardowe elementy formularzy.
-- **`DropdownMenu`**: Dla menu kontekstowych z dodatkowymi akcjami (np. edytuj/usuń).
-- **`Progress`**: Do wizualizacji postępu (np. w sesji nauki).
+Komponenty Shadcn/ui i custom:
+- `Button`, `Card`, `Dialog`, `Toast`, `Table`, `Input`, `Textarea`, `Select`, `DropdownMenu`, `Progress`, `Alert`, `Spinner`.
+- Konteksty: `AuthProvider`, `QueryClientProvider`, planowany `AiGenerationProvider`.
 
 ## 6. Mapowanie Wymagań (PRD) na Architekturę UI
 
-| Historyjka Użytkownika (ID) | Wymaganie Funkcjonalne (ID) | Element Architektury UI / Przepływ |
-| :--- | :--- | :--- |
-| US-001, US-002 | FW-004 | **Widok: Logowanie Deweloperskie** (`/dev-login`) jako rozwiązanie MVP. W przyszłości pełny system logowania i rejestracji. |
-| US-003, US-005, US-006 | FW-001, FW-006, FW-008 | Główny przepływ użytkownika: **Generator AI (Formularz)** (`/generate`) -> **Generator AI (Podgląd)** (`/generate/preview`). |
-| US-004 | FW-002 | Przycisk "Dodaj nową fiszkę" i formularz w oknie `Dialog` w widoku **Szczegółów Zestawu** (`/sets/:setId`). |
-| US-006 | FW-002 | Przycisk "Edytuj" i formularz w oknie `Dialog` w widoku **Szczegółów Zestawu** (`/sets/:setId`). |
-| US-007 | FW-002 | Przycisk "Usuń" (z potwierdzeniem) w widoku **Szczegółów Zestawu** (`/sets/:setId`). |
-| US-008 | FW-007 | Przyciski "kciuk w górę/dół" (`DropdownMenu` lub ikony) przy fiszkach w widoku **Szczegółów Zestawu**. |
-| US-009 | FW-005 | **Widok: Sesja Nauki** (`/learn`). |
-| (brak) | FW-003 | **Widok: Moje Zestawy** (`/sets`) i **Widok: Szczegóły Zestawu** (`/sets/:setId`). |
+| Historyjka | Wymaganie | Element UI |
+| --- | --- | --- |
+| US-001, US-002 | FW-004 | `/login` + globalny `AuthProvider` |
+| US-003, US-005, US-006 | FW-001, FW-006, FW-008 | `/generate` (manualny generator z listą fiszek i inline CRUD) |
+| US-004 | FW-002 | Formularz dodawania fiszek w `/generate` |
+| US-006 | FW-002 | Tryb edycji inline w `/generate` (oraz `/sets/:setId`) |
+| US-007 | FW-002 | Usuwanie fiszek w `/generate` i `/sets/:setId` |
+| US-008 | FW-007 | System ocen na poziomie fiszek (w planie dla widoków zestawów/AI) |
+| US-009 | FW-005 | `/learn` |
+| (AI roadmap) | FW-001, FW-006, FW-008 | `/generate-ai` → `/generate-ai/preview` + API AI |
 
 ## 7. Rozwiązanie Problemów Użytkownika
 
-Architektura UI bezpośrednio adresuje główny problem użytkownika, czyli czasochłonność manualnego tworzenia fiszek, poprzez:
-
-1.  **Centralizację Przepływu AI**: Dedykowane widoki `/generate` i `/generate/preview` tworzą prostą i prowadzącą za rękę ścieżkę od surowego tekstu do gotowego zestawu fiszek.
-2.  **Elastyczność i Kontrolę**: Widok podglądu daje użytkownikowi pełną kontrolę nad wynikiem pracy AI, pozwalając na edycję i korektę przed zapisaniem, co buduje zaufanie do narzędzia.
-3.  **Szybkość i Responsywność**: Wykorzystanie wzorców takich jak "Optimistic UI" oraz wydajne zarządzanie stanem serwera sprawia, że interfejs jest szybki, co zachęca do regularnego korzystania z aplikacji.
+1. **Bezpieczny dostęp**: JWT w `sessionStorage` + `AuthContext`, ochrona tras.
+2. **Manualna kontrola**: `/generate` pozwala szybko tworzyć, edytować i usuwać fiszki bez zmiany kontekstu.
+3. **Przygotowanie pod AI**: zaplanowany `/generate-ai` wykorzysta te same wzorce UI (Select, listy, toasty), dzięki czemu rozszerzenie funkcjonalności nie będzie wymagało przebudowy struktury.
+4. **Responsywność**: loader’y, stany pustych danych i optymistyczne aktualizacje zapewniają płynne doświadczenie.

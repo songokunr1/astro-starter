@@ -1,138 +1,127 @@
-# Plan implementacji widoku: Generator AI (Formularz)
+# Plan implementacji: Logowanie, Ręczne Tworzenie Fiszek i Przygotowanie pod Generator AI
 
 ## 1. Przegląd
 
-Celem tego widoku jest dostarczenie użytkownikowi interfejsu do generowania fiszek za pomocą AI. Widok składa się z formularza, w którym użytkownik podaje nazwę dla nowego zestawu oraz wkleja tekst źródłowy. Po przesłaniu formularza, aplikacja komunikuje się z API w celu wygenerowania fiszek, a następnie przekierowuje użytkownika do widoku podglądu w celu ich weryfikacji i akceptacji.
+Dotychczas wdrożyliśmy podstawowe elementy aplikacji: bezpieczne logowanie oraz pełnoprawny widok `/generate` z ręcznym tworzeniem, edycją i usuwaniem fiszek. Kolejnym krokiem będzie dodanie dedykowanego przepływu AI (`/generate-ai`), który wykorzysta istniejące wzorce (AuthContext, React Query, Shadcn/ui) i rozszerzy je o obsługę zewnętrznego modelu językowego.
 
-## 2. Routing widoku
+Plan dzieli się na trzy zakończone etapy oraz czwarty – planowany – obejmujący generator AI.
 
-Widok będzie dostępny pod następującą ścieżką:
-- **Ścieżka**: `/generate`
+---
 
-Implementacja zostanie umieszczona w pliku `src/pages/generate.astro`.
+## Etap 1: Logowanie i przygotowanie infrastruktury (zakończony)
 
-## 3. Struktura komponentów
+### 2. Routing
+- `/login` – formularz logowania oparty o Supabase Auth.
+- `/generate` – docelowa strona generatora (początkowo placeholder, docelowo manualny formularz).
 
-Hierarchia komponentów dla tego widoku będzie następująca. Komponent `GeneratorAiForm` będzie komponentem React renderowanym po stronie klienta (`client:load`).
-
+### 3. Kluczowe komponenty
 ```
-- src/pages/generate.astro
-  - Layout
-    - GeneratorAiForm (`client:load`)
-      - Card (Shadcn)
-        - CardHeader, CardTitle
-        - CardContent
-          - Form (Shadcn/react-hook-form)
-            - FormField (dla `setName`)
-              - FormItem, FormLabel, FormControl, FormMessage
-              - Input (Shadcn)
-            - FormField (dla `source_text`)
-              - FormItem, FormLabel, FormControl, FormMessage
-              - Textarea (Shadcn)
-            - Button (Shadcn, z obsługą stanu ładowania)
+src/pages/login.astro
+  └─ Layout
+      └─ LoginPage (`client:load`)
+          └─ LoginForm (React, shadcn/ui, react-hook-form, zod)
+
+src/pages/generate.astro
+  └─ Layout
+      └─ GeneratePlaceholderPage (React – obecnie ManualFlashcardForm)
 ```
 
-## 4. Szczegóły komponentów
+### 4. Logika
+- `AuthContext` przechowuje token JWT w pamięci i `sessionStorage`.
+- `LoginForm` waliduje dane, wysyła żądanie do Supabase, zapisuje token i pokazuje toasty o sukcesie/błędach.
+- Po zalogowaniu następuje przekierowanie na `/generate`.
 
-### `GeneratorAiForm.tsx`
+### 5. Testy
+- Walidacja formularza (puste pola, błędny email/hasło, kod 401/429).
+- Sprawdzenie utrzymania tokenu po odświeżeniu strony.
 
-- **Opis komponentu**: Główny komponent React, który zawiera całą logikę formularza, jego walidację oraz komunikację z API. Używa `react-hook-form` do zarządzania stanem formularza i `@tanstack/react-query` do obsługi mutacji (wywołania API).
-- **Główne elementy**:
-  - Komponent `Card` z `CardHeader` i `CardContent` do wizualnego opakowania formularza.
-  - Komponent `Form` z `react-hook-form` i `zodResolver` do zarządzania formularzem i walidacją.
-  - Dwa pola `FormField`: jedno z komponentem `Input` dla `setName`, drugie z `Textarea` dla `source_text`.
-  - Komponent `Button` typu `submit`, który wyświetla stan ładowania (`isPending` z `useMutation`).
-- **Obsługiwane interakcje**:
-  - `onSubmit`: Po pomyślnej walidacji formularza, uruchamia mutację (wywołanie API) w celu wygenerowania fiszek.
-- **Warunki walidacji**:
-  - `setName`: Pole wymagane, nie może być puste (`min(1)`).
-  - `source_text`: Pole wymagane, nie może być puste (`min(1)`).
-- **Typy**:
-  - `GenerateFlashcardsCommand` (dane formularza i żądanie API).
-  - `GenerateFlashcardsResponseDto` (odpowiedź API).
-- **Propsy**: Brak. Komponent jest samodzielny.
+---
 
-## 5. Typy
+## Etap 2: Manualny generator fiszek (zakończony)
 
-Do implementacji widoku wykorzystane zostaną istniejące typy z pliku `src/types.ts`. Nie ma potrzeby tworzenia nowych typów.
+### 6. Zakres funkcjonalny
+- Pobieranie zestawów (`GET /api/v1/sets`).
+- Tworzenie nowego zestawu (formularz rozwijany, `POST /api/v1/sets`).
+- Dodawanie fiszek (`POST /api/v1/sets/{setId}/flashcards`).
+- Wyświetlanie listy fiszek w wybranym secie.
+- Edycja inline (`PATCH /api/v1/sets/{setId}/flashcards/{flashcardId}`).
+- Usuwanie (`DELETE /api/v1/sets/{setId}/flashcards/{flashcardId}`).
+- Toastery potwierdzające akcje i obsługujące błędy.
 
-- **`GenerateFlashcardsCommand`**: Obiekt danych wysyłany do API. Odpowiada strukturze danych formularza.
-  ```typescript
-  export interface GenerateFlashcardsCommand {
-    source_text: string;
-    setName: string;
-  }
-  ```
-- **`GenerateFlashcardsResponseDto`**: Obiekt danych otrzymywany z API po pomyślnym wygenerowaniu fiszek. Dane te zostaną zapisane w globalnym kontekście.
-  ```typescript
-  export interface GenerateFlashcardsResponseDto {
-    temp_id: string;
-    setName: string;
-    source_text: string;
-    flashcards: AiGeneratedFlashcard[];
-  }
-  ```
+### 7. Struktura komponentu `ManualFlashcardForm`
+```
+ManualFlashcardForm
+  ├─ Select zestawu + przycisk „New set”
+  ├─ (Warunkowo) formularz tworzenia nowego zestawu
+  ├─ Formularz dodawania fiszki (front/back)
+  └─ Lista fiszek (kart) z przyciskami Edit/Save/Cancel/Delete
+```
 
-## 6. Zarządzanie stanem
+### 8. UX
+- Sekcja „Create new set” widoczna tylko po wyborze „New set”.
+- Po utworzeniu zestawu sekcja się chowa, a nowy zestaw staje się aktywny.
+- Tryb edycji blokuje równoczesne zapisywanie/usuń; toasty informują o powodzeniu lub błędach.
+- Usuwanie wymaga potwierdzenia (`window.confirm`).
 
-- **Stan formularza**: Będzie zarządzany przez bibliotekę `react-hook-form` z resolverem `zod`. To obejmuje wartości pól, błędy walidacji oraz stan przesyłania.
-- **Stan API**: Stan zapytania do API (ładowanie, błąd, sukces) będzie zarządzany przez `useMutation` z biblioteki `@tanstack/react-query`.
-- **Stan globalny (między widokami)**: Zgodnie z `ui-plan.md`, wynik generowania fiszek (`GenerateFlashcardsResponseDto`) musi zostać przekazany do widoku podglądu (`/generate/preview`). Zostanie to zrealizowane za pomocą dedykowanego kontekstu React (`AiGenerationContext`). Po pomyślnej odpowiedzi z API, komponent `GeneratorAiForm` zapisze dane w tym kontekście, a następnie programistycznie przekieruje użytkownika.
+### 9. Pokrycie API
+- `GET /api/v1/sets` – listing z paginacją.
+- `POST /api/v1/sets` – tworzenie zestawu.
+- `GET /api/v1/sets/{setId}` – szczegóły zestawu (z fiszkami).
+- `POST /api/v1/sets/{setId}/flashcards` – dodawanie fiszki.
+- `PATCH /api/v1/sets/{setId}/flashcards/{flashcardId}` – edycja.
+- `DELETE /api/v1/sets/{setId}/flashcards/{flashcardId}` – usuwanie.
 
-## 7. Integracja API
+---
 
-- **Endpoint**: `POST /api/v1/ai/generate-flashcards`
-- **Biblioteka**: Wykorzystany zostanie `fetch` opakowany w `useMutation` z `@tanstack/react-query`.
-- **Typ żądania**: `GenerateFlashcardsCommand`
-- **Typ odpowiedzi (sukces)**: `GenerateFlashcardsResponseDto`
-- **Przepływ**:
-  1. Użytkownik przesyła poprawnie wypełniony formularz.
-  2. Uruchamiana jest funkcja `mutate` z `useMutation`, wysyłając dane formularza do endpointu.
-  3. W trakcie zapytania (`isPending`), przycisk przesyłania jest nieaktywny i wyświetla wskaźnik ładowania.
-  4. Po otrzymaniu odpowiedzi `200 OK`, dane (`GenerateFlashcardsResponseDto`) są zapisywane w `AiGenerationContext`, a użytkownik jest przekierowywany na `/generate/preview`.
-  5. W przypadku błędu, użytkownikowi wyświetlany jest odpowiedni komunikat (Toast).
+## Etap 3: Usprawnienia UX i testy (bieżące zadania)
 
-## 8. Interakcje użytkownika
+1. Ujednolicenie obsługi błędów (blokady przycisków, dedykowane komunikaty dla 401/429/500).
+2. Checklisty manualne i ewentualne testy E2E dla przepływu logowanie → dodaj/edytuj/usuń fiszkę.
+3. Dalsze kosmetyczne poprawki UI (stany pustych danych, responsywność, skróty klawiaturowe w edycji).
 
-- **Wprowadzanie danych**: Użytkownik wpisuje tekst w pola "Nazwa zestawu" i "Tekst źródłowy".
-- **Przesłanie formularza**: Użytkownik klika przycisk "Generuj fiszki".
-  - **Wynik (formularz niepoprawny)**: Przesłanie jest blokowane, a pod odpowiednimi polami wyświetlane są komunikaty o błędach walidacji.
-  - **Wynik (formularz poprawny)**: Przycisk zostaje zablokowany, pojawia się animacja ładowania, a w tle wysyłane jest zapytanie do API. Po pomyślnym zakończeniu następuje przekierowanie. W razie błędu, przycisk wraca do stanu aktywnego, a użytkownik widzi powiadomienie o błędzie.
+---
 
-## 9. Warunki i walidacja
+## Etap 4: Generator AI – plan wdrożenia
 
-Walidacja po stronie klienta będzie lustrzanym odbiciem walidacji backendowej, aby zapewnić spójność i dobry UX.
+### 10. Zakres
+- Nowe widoki: `/generate-ai` (formularz) oraz `/generate-ai/preview` (podgląd i akceptacja).
+- Kontekst `AiGenerationContext` do przechowywania tymczasowego wyniku LLM.
+- Integracja z endpointem proxy do zewnętrznego modelu (`POST /api/v1/ai/generate` + `POST /api/v1/ai/accept`).
 
-- **Schemat walidacji (Zod)**:
-  ```typescript
-  const GenerateFlashcardsSchema = z.object({
-    setName: z.string().min(1, "Nazwa zestawu jest wymagana."),
-    source_text: z.string().min(1, "Tekst źródłowy jest wymagany."),
-  });
-  ```
-- **Wpływ na interfejs**:
-  - Jeśli pole jest niepoprawne po utracie fokusa lub próbie przesłania, pod polem pojawi się komunikat błędu zdefiniowany w schemacie.
-  - Przycisk "Generuj fiszki" może być warunkowo nieaktywny, dopóki formularz nie będzie poprawny, lub walidacja może być uruchamiana dopiero przy próbie przesłania.
+### 11. Struktura komponentów
+```
+src/pages/generate-ai.astro
+  └─ Layout
+      └─ AiGeneratorForm (`client:load`)
+          ├─ Form na parametry (setName, source_text, opcje)
+          └─ Sekcja statusu (loader, logi, błędy)
 
-## 10. Obsługa błędów
+src/pages/generate-ai/preview.astro
+  └─ Layout
+      └─ AiGeneratorPreview (`client:load`)
+          ├─ Lista edytowalnych fiszek (na bazie ManualFlashcardCard)
+          ├─ Akcje „Save as set” / „Discard”
+          └─ Toasty + redirecty
+```
 
-Błędy będą komunikowane użytkownikowi za pomocą komponentu `Toast`.
+### 12. Integracja API (szczegóły w `api-plan.md`)
+- `POST /api/v1/ai/generate` – przyjmuje parametry wejściowe, wykonuje żądanie do LLM (OpenRouter/OpenAI) z ustalonym promptem i oczekuje JSON (`setName`, `flashcards[]` z `front`/`back`).
+- `POST /api/v1/ai/accept` – zapisuje zaakceptowany zestaw (re-use istniejących serwisów `createSetWithFlashcards`).
+- Obsługa błędów (limity, niepoprawny JSON z modelu), powiadomienia toast.
 
-- **Błędy walidacji**: Obsługiwane przez `react-hook-form` i wyświetlane bezpośrednio pod polami formularza.
-- **Błąd 401 Unauthorized**: Sesja użytkownika wygasła. Globalny handler zapytań powinien przechwycić ten błąd i przekierować użytkownika do strony logowania.
-- **Błąd 429 Too Many Requests**: Wyświetlony zostanie toast z informacją: "Wykryto zbyt wiele prób. Spróbuj ponownie za chwilę." (opcjonalnie z czasem z nagłówka `Retry-After`).
-- **Błąd 500 Internal Server Error**: Wyświetlony zostanie ogólny toast: "Wystąpił błąd po stronie serwera. Prosimy spróbować ponownie później."
-- **Błąd sieciowy**: Wyświetlony zostanie toast: "Błąd połączenia sieciowego. Sprawdź swoje połączenie i spróbuj ponownie."
+### 13. Kolejne kroki developmentu (proponowana kolejność)
+1. Przygotować kontekst `AiGenerationContext` + provider.
+2. Zaimplementować formularz `/generate-ai` + weryfikację wejścia.
+3. Dodać endpoint proxy + logikę wywołania LLM.
+4. Stworzyć widok `/generate-ai/preview` z edycją i akcjami akceptacji/odrzucenia.
+5. Połączyć `POST /api/v1/ai/accept` z istniejącą logiką tworzenia zestawów.
+6. Testy manualne: puste wejście, za długi tekst, błędy 4xx/5xx z modelu, odrzucenie/akceptacja.
 
-## 11. Kroki implementacji
+---
 
-1.  **Stworzenie pliku strony**: Utworzyć plik `src/pages/generate.astro`. Wewnątrz umieścić podstawowy layout strony.
-2.  **Stworzenie komponentu formularza**: Utworzyć plik `src/components/feature/ai/GeneratorAiForm.tsx`.
-3.  **Implementacja struktury formularza**: W `GeneratorAiForm.tsx` użyć komponentów Shadcn (`Card`, `Form`, `Input`, `Textarea`, `Button`) do zbudowania wizualnej struktury formularza.
-4.  **Podłączenie `react-hook-form`**: Zainicjować `useForm` z resolverem Zod (`zodResolver`) i schematem walidacji zdefiniowanym w sekcji 9. Połączyć hook z komponentami formularza.
-5.  **Implementacja `AiGenerationContext`**: Stworzyć kontekst, który będzie przechowywał `GenerateFlashcardsResponseDto` oraz funkcję do jego aktualizacji.
-6.  **Implementacja mutacji API**: W `GeneratorAiForm.tsx` użyć hooka `useMutation` z `@tanstack/react-query` do zdefiniowania logiki wysyłania danych do `POST /api/v1/ai/generate-flashcards`.
-7.  **Obsługa stanu ładowania i błędów**: Połączyć stan `isPending` z `useMutation` z przyciskiem, aby pokazywać animację ładowania. W `onError` zaimplementować wyświetlanie toastów z błędami.
-8.  **Obsługa sukcesu i przekierowania**: W `onSuccess` z `useMutation` wywołać funkcję z `AiGenerationContext` w celu zapisania wyniku, a następnie użyć `navigate` z Astro do przekierowania użytkownika na `/generate/preview`.
-9.  **Integracja z Astro**: Umieścić komponent `<GeneratorAiForm client:load />` na stronie `generate.astro`. Upewnić się, że strona jest opakowana w `AiGenerationProvider`.
-10. **Testowanie**: Przetestować wszystkie ścieżki: pomyślne generowanie, błędy walidacji, błędy serwera (4xx, 5xx) oraz błąd sieciowy.
+## 14. Podsumowanie
+
+- Ręczny generator jest gotowy i zapewnia pełen CRUD w jednym widoku.
+- Logowanie i zarządzanie tokenem zostały ustabilizowane.
+- Dokument opisuje planowane rozszerzenie o generator AI, które wykorzysta dotychczasowe wzorce i serwisy API.
+- Następne zadania: dopracowanie UX/obsługi błędów, aktualizacja dokumentacji API oraz implementacja `/generate-ai` zgodnie z opisanym planem.
