@@ -4,11 +4,10 @@ import { useEffect, useMemo, useState, useCallback } from "react";
 import { toast } from "sonner";
 import { Loader2, Pencil, Check, X, Trash2 } from "lucide-react";
 
-import Providers from "@/components/providers";
+import AuthenticatedShell from "@/components/layouts/AuthenticatedShell";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
-import { Toaster } from "@/components/ui/sonner";
 import { AiGenerationProvider, useAiGeneration, type AiGeneratedFlashcard } from "@/lib/ai-generation-context";
 import { useAuth } from "@/lib/auth-context";
 import { AcceptDraftError, useAcceptDraftMutation } from "./hooks";
@@ -336,12 +335,11 @@ function GenerateAiPreviewContent() {
 
 export function GenerateAiPreviewPage() {
   return (
-    <Providers>
+    <AuthenticatedShell>
       <AiGenerationProvider>
         <GenerateAiPreviewContent />
-        <Toaster richColors position="top-right" />
       </AiGenerationProvider>
-    </Providers>
+    </AuthenticatedShell>
   );
 }
 

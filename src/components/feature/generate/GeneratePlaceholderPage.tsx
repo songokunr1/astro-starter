@@ -2,12 +2,11 @@
 
 import { useEffect, useMemo, useState } from "react";
 
-import Providers from "@/components/providers";
+import AuthenticatedShell from "@/components/layouts/AuthenticatedShell";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Toaster } from "@/components/ui/sonner";
 import { useAuth } from "@/lib/auth-context";
 import type { FlashcardSetDetailDto, FlashcardSetSummaryDto, PaginatedResponseDto } from "@/types";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -578,7 +577,7 @@ function ManualFlashcardForm({ token }: { token: string }) {
 }
 
 function GeneratePageContent() {
-  const { token, logout } = useAuth();
+  const { token } = useAuth();
 
   const hasToken = Boolean(token);
 
@@ -587,11 +586,6 @@ function GeneratePageContent() {
       window.location.replace("/login");
     }
   }, [hasToken]);
-
-  const handleLogout = () => {
-    logout();
-    window.location.replace("/login");
-  };
 
   if (!token) {
     return (
@@ -603,16 +597,9 @@ function GeneratePageContent() {
 
   return (
     <main className="container mx-auto flex flex-1 flex-col items-center gap-6 p-6">
-      <div className="flex w-full max-w-3xl items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-semibold tracking-tight">Flashcard generator (manual)</h1>
-          <p className="text-muted-foreground">
-            Create a new flashcard manually or add it to one of your existing sets.
-          </p>
-        </div>
-        <Button variant="outline" onClick={handleLogout}>
-          Log out
-        </Button>
+      <div className="w-full max-w-3xl space-y-1">
+        <h1 className="text-3xl font-semibold tracking-tight">Flashcard generator (manual)</h1>
+        <p className="text-muted-foreground">Create a new flashcard manually or add it to one of your existing sets.</p>
       </div>
 
       <div className="w-full max-w-3xl">
@@ -629,10 +616,9 @@ function GeneratePageContent() {
 
 export function GeneratePlaceholderPage() {
   return (
-    <Providers>
+    <AuthenticatedShell>
       <GeneratePageContent />
-      <Toaster />
-    </Providers>
+    </AuthenticatedShell>
   );
 }
 

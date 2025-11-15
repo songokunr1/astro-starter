@@ -30,6 +30,13 @@ class LoginError extends Error {
   }
 }
 
+class ResetRequestError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "ResetRequestError";
+  }
+}
+
 interface SupabaseTokenResponse {
   access_token: string;
 }
@@ -74,6 +81,40 @@ async function getSupabaseToken(values: LoginFormValues): Promise<SupabaseTokenR
   return response.json();
 }
 
+async function requestPasswordReset(email: string) {
+  if (!supabaseRestUrl || !supabaseAnonKey) {
+    throw new ResetRequestError("Brak konfiguracji Supabase. Skontaktuj się z administratorem.");
+  }
+
+  let response: Response;
+
+  try {
+    response = await fetch(`${supabaseRestUrl}/auth/v1/recover`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        apikey: supabaseAnonKey,
+      },
+      body: JSON.stringify({
+        email,
+        redirect_to: `${window.location.origin.replace(/\/$/, "")}/reset-password`,
+      }),
+    });
+  } catch {
+    throw new ResetRequestError("Nie udało się wysłać prośby o reset hasła. Sprawdź połączenie i spróbuj ponownie.");
+  }
+
+  if (!response.ok) {
+    let message = "Nie udało się wysłać prośby o reset hasła. Spróbuj ponownie za chwilę.";
+
+    if (response.status === 429) {
+      message = "Zbyt wiele prób resetu. Odczekaj chwilę, zanim spróbujesz ponownie.";
+    }
+
+    throw new ResetRequestError(message);
+  }
+}
+
 export function LoginForm() {
   const auth = useAuth();
   const defaultEmail = import.meta.env.PUBLIC_TEST_LOGIN ?? "";
@@ -90,7 +131,7 @@ export function LoginForm() {
     mutationFn: getSupabaseToken,
     onSuccess: (data) => {
       auth.login(data.access_token);
-      toast.success("Login successful");
+      toast.success("Logowanie udane");
       window.location.assign("/generate");
     },
     onError: (error) => {
@@ -101,16 +142,46 @@ export function LoginForm() {
         message: description,
       });
 
-      toast.error("Login failed", {
+      toast.error("Logowanie nie powiodło się", {
+        description,
+      });
+    },
+  });
+
+  const resetMutation = useMutation({
+    mutationFn: requestPasswordReset,
+    onSuccess: () => {
+      toast.success("Jeśli podany adres istnieje, wysłaliśmy instrukcje resetu hasła.", {
+        description: "Sprawdź skrzynkę pocztową i postępuj zgodnie z wiadomością.",
+      });
+    },
+    onError: (error) => {
+      const description =
+        error instanceof ResetRequestError
+          ? error.message
+          : "Nie udało się wysłać prośby o reset hasła. Spróbuj ponownie.";
+
+      toast.error("Błąd resetu hasła", {
         description,
       });
     },
   });
 
   const { isPending } = mutation;
+  const { isPending: isResetPending } = resetMutation;
 
   async function onSubmit(values: LoginFormValues) {
     mutation.mutate(values);
+  }
+
+  async function handlePasswordReset() {
+    const isEmailValid = await form.trigger("email");
+    if (!isEmailValid) {
+      return;
+    }
+
+    const email = form.getValues("email");
+    resetMutation.mutate(email);
   }
 
   return (
@@ -162,7 +233,7 @@ export function LoginForm() {
                 </FormItem>
               )}
             />
-            <Button type="submit" className="w-full" disabled={isPending}>
+            <Button type="submit" className="w-full" disabled={isPending || isResetPending}>
               {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Log in
             </Button>
@@ -171,6 +242,24 @@ export function LoginForm() {
             )}
           </form>
         </Form>
+        <div className="mt-2 text-right text-sm">
+          <Button
+            type="button"
+            variant="link"
+            className="px-0 text-sm text-primary"
+            onClick={handlePasswordReset}
+            disabled={isPending || isResetPending}
+          >
+            {isResetPending ? (
+              <span className="inline-flex items-center">
+                <Loader2 className="mr-1 h-3 w-3 animate-spin" />
+                Wysyłanie...
+              </span>
+            ) : (
+              "Resetuj hasło"
+            )}
+          </Button>
+        </div>
         <div className="mt-4 text-center text-sm">
           Nie masz konta?{" "}
           <a href="/register" className="underline">

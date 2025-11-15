@@ -60,6 +60,15 @@ Następujące funkcjonalności nie wchodzą w zakres MVP i mogą zostać rozważ
   - Dostęp do widoków i operacji na zestawach, fiszkach oraz generatorach (manualny i AI) wymaga aktywnej sesji – bez ważnego tokenu użytkownik jest przekierowywany na `/login`.
   - W przypadku błędu autoryzacji (np. wygasły token) użytkownik otrzymuje komunikat i zostaje poproszony o ponowne logowanie.
 
+- ID: US-012 (TODO)
+- Tytuł: Wysyłka maili resetu hasła
+- Opis: Jako użytkownik, który prosi o reset hasła, chcę otrzymać wiadomość e-mail z linkiem Supabase, aby móc kontynuować proces zmiany hasła.
+- Kryteria akceptacji:
+  - Środowisko Supabase ma skonfigurowany serwer SMTP i działające szablony wiadomości resetu.
+  - Akcja „Resetuj hasło” w interfejsie powoduje wysłanie maila na wskazany adres; treść zawiera link do `/reset-password`.
+  - System loguje nieudane próby wysyłki (np. błędna konfiguracja SMTP) i prezentuje użytkownikowi komunikat o błędzie.
+  - Zadanie pozostaje w statusie TODO do momentu podpięcia realnego serwisu e-mail i testu end-to-end.
+
 ### Zarządzanie Fiszkami
 - ID: US-003
 - Tytuł: Generowanie fiszek przez AI

@@ -68,7 +68,67 @@ export async function getReviewSession(
     })
     .filter((item): item is LearningSessionFlashcardDto => item !== null);
 
-  return { data: mappedData, error: null };
+  if (mappedData.length > 0) {
+    return { data: mappedData, error: null };
+  }
+
+  const fallbackResult = await getFallbackFlashcards(supabase, userId, { setId, limit });
+
+  if (fallbackResult.error) {
+    return { data: null, error: fallbackResult.error };
+  }
+
+  return { data: fallbackResult.data, error: null };
+}
+
+async function getFallbackFlashcards(
+  supabase: SupabaseClient,
+  userId: string,
+  options: { setId?: string; limit: number },
+): Promise<{ data: LearningSessionFlashcardDto[]; error: any }> {
+  // Fallback attempts to fetch plain flashcards when the spaced-repetition schedule is empty.
+  const { setId, limit } = options;
+
+  if (!setId) {
+    // Without an explicit set we cannot safely fetch arbitrary flashcards.
+    return { data: [], error: null };
+  }
+
+  const { data, error } = await supabase
+    .from("flashcards")
+    .select(
+      `
+      id,
+      front,
+      back,
+      flashcard_set_id,
+      flashcard_set:flashcard_sets!inner (
+        user_id
+      )
+    `,
+    )
+    .eq("flashcard_set_id", setId)
+    .eq("flashcard_set.user_id", userId)
+    .is("deleted_at", null)
+    .order("created_at", { ascending: true })
+    .limit(limit);
+
+  if (error) {
+    console.error("Error fetching fallback flashcards:", error);
+    return { data: [], error };
+  }
+
+  // RLS ensures that only the owner can read flashcards for their sets, but we still defensively
+  // verify the flashcards belong to the requested set and user by checking that some rows exist.
+  const fallbackCards: LearningSessionFlashcardDto[] = (data ?? []).map((card) => ({
+    id: card.id,
+    flashcard_id: card.id,
+    front: card.front,
+    back: card.back,
+    next_review_date: new Date().toISOString(),
+  }));
+
+  return { data: fallbackCards, error: null };
 }
 
 const DEFAULT_EASE_FACTOR = 2.5;

@@ -48,6 +48,7 @@ Nawigacja opiera się na statycznym panelu bocznym (sidebar) zapewniającym dost
 - **Kluczowe Informacje**: Lista zestawów (Select), formularz front/back, możliwość tworzenia nowego zestawu, lista istniejących fiszek z trybem edycji/usuń.
 - **Kluczowe Komponenty**: `Select`, `Input`, `Textarea`, `Card`, `Button`, `Toast`.
 - **UX**: Sekcja „Create new set” rozwijana tylko przy wyborze opcji „New set”, automatyczny wybór nowo utworzonego zestawu, blokada przycisków podczas mutacji, potwierdzenie `window.confirm` przy usuwaniu.
+- **Nawigacja**: Widok opakowany w `AuthenticatedShell` – nagłówek zawiera link do strony głównej generatora i przycisk „Wyloguj”.
 
 ### Widok: Generator AI (Formularz – planowany)
 - **Ścieżka**: `/generate-ai`
@@ -55,6 +56,7 @@ Nawigacja opiera się na statycznym panelu bocznym (sidebar) zapewniającym dost
 - **Kluczowe Informacje**: Formularz (nazwa zestawu, tekst źródłowy, liczba fiszek, język), stan wysyłki, logi postępu.
 - **Kluczowe Komponenty**: `Form`, `Textarea`, `Button` z loaderem, `Alert` na błędy API.
 - **UX**: Jasne instrukcje dot. formatu tekstu, wskazówka o limitach i czasie generowania, informacje o kosztach/limitach (jeśli dotyczy).
+- **Nawigacja**: Ten sam `AuthenticatedShell` – w nagłówku dostępny jest przycisk „Wyloguj”.
 
 ### Widok: Generator AI (Podgląd – planowany)
 - **Ścieżka**: `/generate-ai/preview`
@@ -62,6 +64,7 @@ Nawigacja opiera się na statycznym panelu bocznym (sidebar) zapewniającym dost
 - **Kluczowe Informacje**: Proponowana nazwa zestawu, edytowalna lista fiszek, akcje „Zapisz”/„Odrzuć”.
 - **Kluczowe Komponenty**: Edytowalne karty (`Input`, `Textarea`), `Button`, `Toast`.
 - **UX**: Informacja o utracie danych przy odświeżeniu (stan w kontekście), możliwość dodania/usunięcia fiszek przed akceptacją.
+- **Nawigacja**: Dziedziczy nagłówek `AuthenticatedShell` z przyciskiem „Wyloguj”.
 
 ### Widok: Sesja Nauki
 - **Ścieżka**: `/learn`
@@ -102,6 +105,8 @@ Nawigacja opiera się na statycznym panelu bocznym (sidebar) zapewniającym dost
 ## 4. Układ i Struktura Nawigacji
 
 - **Sidebar**: linki do `Dashboard`, `Moje Zestawy`, `Generate` (manualne), `Generate AI` (planowane), `Learn`.
+- **Nagłówek globalny**: Komponent `AuthenticatedShell` z logo/skrótami oraz przyciskiem „Wyloguj” (dostępny po zalogowaniu); zastępuje per-widokowe przyciski log-out.
+- **Przełącznik generatorów**: w nagłówku widoczny jest zestaw przycisków nawigacyjnych (`/generate`, `/generate-ai`) z wyróżnieniem bieżącej trasy, umożliwiający szybkie przełączanie między trybami.
 - **Menu użytkownika**: profil, ustawienia, wylogowanie.
 - **Breadcrumbs**: np. `Moje Zestawy > [nazwa zestawu]` dla widoków zagnieżdżonych.
 

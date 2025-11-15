@@ -6,12 +6,11 @@ import { Loader2 } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 
-import Providers from "@/components/providers";
+import AuthenticatedShell from "@/components/layouts/AuthenticatedShell";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Toaster } from "@/components/ui/sonner";
 import { Textarea } from "@/components/ui/textarea";
 import {
   AiGenerationFormSchema,
@@ -131,7 +130,6 @@ function GenerateAiPageContent() {
     control,
     handleSubmit,
     formState: { isValid, isSubmitting },
-    reset,
     watch,
   } = formInstance;
 
@@ -252,9 +250,6 @@ function GenerateAiPageContent() {
         <div className="flex items-center gap-2">
           <Button asChild variant="secondary">
             <a href="/generate-ai/preview">Open preview</a>
-          </Button>
-          <Button asChild variant="outline">
-            <a href="/generate">Switch to manual</a>
           </Button>
         </div>
       </header>
@@ -522,12 +517,11 @@ function GenerateAiPageContent() {
 
 export function GenerateAiPage() {
   return (
-    <Providers>
+    <AuthenticatedShell>
       <AiGenerationProvider>
         <GenerateAiPageContent />
-        <Toaster richColors position="top-right" />
       </AiGenerationProvider>
-    </Providers>
+    </AuthenticatedShell>
   );
 }
 
