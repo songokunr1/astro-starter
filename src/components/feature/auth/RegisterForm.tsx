@@ -11,97 +11,98 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Loader2 } from "lucide-react";
-import { useAuth } from "@/lib/auth-context";
 
-const loginFormSchema = z.object({
-  email: z.string({ required_error: "Email jest wymagany." }).email("Niepoprawny adres email."),
-  password: z.string({ required_error: "Hasło jest wymagane." }).min(1, "Hasło jest wymagane."),
-});
+const registerFormSchema = z
+  .object({
+    email: z.string({ required_error: "Email jest wymagany." }).email("Niepoprawny adres email."),
+    password: z.string({ required_error: "Hasło jest wymagane." }).min(6, "Hasło musi mieć co najmniej 6 znaków."),
+    confirmPassword: z.string({ required_error: "Potwierdzenie hasła jest wymagane." }),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Hasła nie są takie same.",
+    path: ["confirmPassword"],
+  });
 
-type LoginFormValues = z.infer<typeof loginFormSchema>;
+type RegisterFormValues = z.infer<typeof registerFormSchema>;
 
-class LoginError extends Error {
+class RegisterError extends Error {
   constructor(
     message: string,
     public status?: number
   ) {
     super(message);
-    this.name = "LoginError";
+    this.name = "RegisterError";
   }
-}
-
-interface SupabaseTokenResponse {
-  access_token: string;
 }
 
 const supabaseRestUrl = (import.meta.env.PUBLIC_SUPABASE_URL ?? import.meta.env.SUPABASE_URL)?.replace(/\/$/, "");
 const supabaseAnonKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY ?? import.meta.env.SUPABASE_KEY;
 
-async function getSupabaseToken(values: LoginFormValues): Promise<SupabaseTokenResponse> {
+async function signUpUser(values: RegisterFormValues) {
   if (!supabaseRestUrl || !supabaseAnonKey) {
-    throw new LoginError("Brak konfiguracji Supabase. Skontaktuj się z administratorem.");
+    throw new RegisterError("Brak konfiguracji Supabase. Skontaktuj się z administratorem.");
   }
 
   let response: Response;
 
   try {
-    response = await fetch(`${supabaseRestUrl}/auth/v1/token?grant_type=password`, {
+    response = await fetch(`${supabaseRestUrl}/auth/v1/signup`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         apikey: supabaseAnonKey,
       },
-      body: JSON.stringify(values),
+      body: JSON.stringify({
+        email: values.email,
+        password: values.password,
+      }),
     });
   } catch {
-    throw new LoginError("Network error. Please check your connection and try again.");
+    throw new RegisterError("Network error. Please check your connection and try again.");
   }
 
   if (!response.ok) {
-    let message = "Unexpected error while logging in. Please try again.";
+    let message = "Unexpected error while registering. Please try again.";
 
-    if (response.status === 401) {
-      message = "Invalid email or password.";
-    } else if (response.status === 429) {
-      message = "Too many attempts. Please wait a moment before trying again.";
+    if (response.status === 400) {
+      message = "Invalid data provided. Please check your input.";
+    } else if (response.status === 422) {
+      message = "This email is already registered.";
     } else if (response.status >= 500) {
       message = "Server error. Please try again later.";
     }
 
-    throw new LoginError(message, response.status);
+    throw new RegisterError(message, response.status);
   }
-
-  return response.json();
 }
 
-export function LoginForm() {
-  const auth = useAuth();
-  const defaultEmail = import.meta.env.PUBLIC_TEST_LOGIN ?? "";
-  const defaultPassword = import.meta.env.PUBLIC_TEST_PASSWORD ?? "";
-  const form = useForm<LoginFormValues>({
-    resolver: zodResolver(loginFormSchema),
+export function RegisterForm() {
+  const form = useForm<RegisterFormValues>({
+    resolver: zodResolver(registerFormSchema),
     defaultValues: {
-      email: defaultEmail,
-      password: defaultPassword,
+      email: "",
+      password: "",
+      confirmPassword: "",
     },
   });
 
   const mutation = useMutation({
-    mutationFn: getSupabaseToken,
-    onSuccess: (data) => {
-      auth.login(data.access_token);
-      toast.success("Login successful");
-      window.location.assign("/generate");
+    mutationFn: signUpUser,
+    onSuccess: () => {
+      toast.success("Rejestracja pomyślna!", {
+        description: "Sprawdź swoją skrzynkę pocztową, aby potwierdzić adres e-mail.",
+      });
+      window.location.assign("/login");
     },
     onError: (error) => {
-      const description = error instanceof LoginError ? error.message : "Unexpected error.";
+      const description = error instanceof RegisterError ? error.message : "Wystąpił nieoczekiwany błąd.";
 
       form.setError("root", {
         type: "server",
         message: description,
       });
 
-      toast.error("Login failed", {
+      toast.error("Rejestracja nie powiodła się", {
         description,
       });
     },
@@ -109,15 +110,15 @@ export function LoginForm() {
 
   const { isPending } = mutation;
 
-  async function onSubmit(values: LoginFormValues) {
+  async function onSubmit(values: RegisterFormValues) {
     mutation.mutate(values);
   }
 
   return (
     <Card className="w-full">
       <CardHeader className="space-y-1">
-        <CardTitle className="text-2xl">Logowanie</CardTitle>
-        <CardDescription>Wprowadź swoje dane, aby zalogować się na konto. Użyj danych testowych.</CardDescription>
+        <CardTitle className="text-2xl">Rejestracja</CardTitle>
+        <CardDescription>Wprowadź swoje dane, aby założyć konto.</CardDescription>
       </CardHeader>
       <CardContent>
         <Form {...form}>
@@ -153,7 +154,26 @@ export function LoginForm() {
                     <Input
                       type="password"
                       placeholder="********"
-                      autoComplete="current-password"
+                      autoComplete="new-password"
+                      disabled={isPending}
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="confirmPassword"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Potwierdź hasło</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="password"
+                      placeholder="********"
+                      autoComplete="new-password"
                       disabled={isPending}
                       {...field}
                     />
@@ -164,7 +184,7 @@ export function LoginForm() {
             />
             <Button type="submit" className="w-full" disabled={isPending}>
               {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Log in
+              Zarejestruj się
             </Button>
             {form.formState.errors.root && (
               <p className="text-sm font-medium text-destructive">{form.formState.errors.root.message}</p>
@@ -172,9 +192,9 @@ export function LoginForm() {
           </form>
         </Form>
         <div className="mt-4 text-center text-sm">
-          Nie masz konta?{" "}
-          <a href="/register" className="underline">
-            Zarejestruj się
+          Masz już konto?{" "}
+          <a href="/login" className="underline">
+            Zaloguj się
           </a>
         </div>
       </CardContent>
@@ -182,4 +202,4 @@ export function LoginForm() {
   );
 }
 
-export default LoginForm;
+export default RegisterForm;

@@ -15,6 +15,13 @@ Nawigacja opiera się na statycznym panelu bocznym (sidebar) zapewniającym dost
 - **Kluczowe Komponenty**: `Card`, `Form`, `Input`, `Button`, `Toast`.
 - **UX, Bezpieczeństwo**: Walidacja po stronie klienta i serwera, blokada przycisku podczas zapytań, zapisywanie tokenu w `sessionStorage`.
 
+### Widok: Rejestracja
+- **Ścieżka**: `/register`
+- **Główny Cel**: Umożliwienie nowym użytkownikom założenia konta.
+- **Kluczowe Informacje**: Formularz (email, hasło), komunikaty walidacyjne, informacja o błędach API.
+- **Kluczowe Komponenty**: `Card`, `Form`, `Input`, `Button`, `Toast`.
+- **UX, Bezpieczeństwo**: Walidacja po stronie klienta i serwera, blokada przycisku podczas zapytań, przekierowanie do `/login` po pomyślnej rejestracji.
+
 ### Widok: Dashboard
 - **Ścieżka**: `/` lub `/dashboard`
 - **Główny Cel**: Start aplikacji, szybki dostęp do najważniejszych akcji (manualne i AI).
@@ -71,7 +78,7 @@ Nawigacja opiera się na statycznym panelu bocznym (sidebar) zapewniającym dost
 ## 3. Mapy Podróży Użytkownika
 
 ### 3.1. Logowanie → Ręczne zarządzanie fiszkami
-1. Użytkownik trafia na `/login` i podaje dane uwierzytelniające.
+1. Użytkownik trafia na `/login` i podaje dane uwierzytelniające. Może też przejść do `/register`, jeśli nie ma konta.
 2. Po pozytywnej odpowiedzi API token JWT trafia do `sessionStorage`; użytkownik jest przekierowany na `/generate`.
 3. Strona `/generate` odczytuje token, ładuje dostępne zestawy i pokazuje formularz tworzenia fiszek.
 4. Użytkownik może:
@@ -80,7 +87,12 @@ Nawigacja opiera się na statycznym panelu bocznym (sidebar) zapewniającym dost
    - edytować lub usunąć istniejące fiszki w trybie inline,
    - wylogować się przyciskiem „Log out” (czyszczenie tokenu + redirect).
 
-### 3.2. Generowanie AI (planowany przepływ)
+### 3.2. Rejestracja nowego użytkownika
+1. Użytkownik trafia na `/register` (np. z linku na stronie logowania).
+2. Wypełnia formularz rejestracyjny (email, hasło).
+3. Po pomyślnej walidacji i odpowiedzi z API, użytkownik jest informowany o sukcesie i przekierowywany na stronę `/login` w celu zalogowania.
+
+### 3.3. Generowanie AI (planowany przepływ)
 1. Użytkownik z `/dashboard` wybiera „Generate with AI” → `/generate-ai`.
 2. Podaje nazwę zestawu, język, tekst źródłowy, opcjonalne parametry (liczba fiszek, ton etc.).
 3. `POST /api/v1/ai/generate` rozpoczyna żądanie do zewnętrznego LLM (OpenRouter/OpenAI). Widok pokazuje loader i ewentualnie postęp.
@@ -103,7 +115,7 @@ Komponenty Shadcn/ui i custom:
 
 | Historyjka | Wymaganie | Element UI |
 | --- | --- | --- |
-| US-001, US-002 | FW-004 | `/login` + globalny `AuthProvider` |
+| US-001, US-002 | FW-004 | `/login`, `/register` + globalny `AuthProvider` |
 | US-003, US-005, US-006 | FW-001, FW-006, FW-008 | `/generate` (manualny generator z listą fiszek i inline CRUD) |
 | US-004 | FW-002 | Formularz dodawania fiszek w `/generate` |
 | US-006 | FW-002 | Tryb edycji inline w `/generate` (oraz `/sets/:setId`) |
