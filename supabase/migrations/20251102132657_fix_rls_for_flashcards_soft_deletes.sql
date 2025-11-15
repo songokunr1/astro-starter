@@ -18,3 +18,4 @@ USING (is_flashcard_set_owner(flashcard_set_id))
 WITH CHECK (is_flashcard_set_owner(flashcard_set_id));
 
 
+
