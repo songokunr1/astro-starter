@@ -22,7 +22,7 @@ interface LearningSessionResponse {
   data: LearningSessionFlashcardDto[] | null;
 }
 
-async function fetchFlashcardSets(token: string): Promise<FlashcardSetSummaryDto[]> {
+export async function fetchFlashcardSets(token: string): Promise<FlashcardSetSummaryDto[]> {
   const response = await fetch("/api/v1/sets?page=1&pageSize=50&sortBy=updated_at&sortOrder=desc", {
     headers: {
       Authorization: `Bearer ${token}`,
@@ -37,7 +37,7 @@ async function fetchFlashcardSets(token: string): Promise<FlashcardSetSummaryDto
   return body.data;
 }
 
-async function fetchLearningSessionCards(
+export async function fetchLearningSessionCards(
   token: string,
   params: { setId: string; limit: number },
 ): Promise<LearningSessionFlashcardDto[]> {
@@ -61,7 +61,7 @@ async function fetchLearningSessionCards(
   return payload.data ?? [];
 }
 
-async function submitReviewRequest(token: string, payload: SubmitReviewCommand) {
+export async function submitReviewRequest(token: string, payload: SubmitReviewCommand) {
   const response = await fetch("/api/v1/learning/review", {
     method: "POST",
     headers: {

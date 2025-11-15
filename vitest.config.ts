@@ -1,12 +1,18 @@
-import { defineConfig } from "vitest/config";
-import dotenv from "dotenv";
+import path from "node:path";
 
-// Load environment variables from .env file
+import dotenv from "dotenv";
+import { defineConfig } from "vitest/config";
+
 dotenv.config();
 
 export default defineConfig({
+  resolve: {
+    alias: {
+      "@": path.resolve(__dirname, "./src"),
+    },
+  },
   test: {
-    // Set the environment to Node.js for server-side tests
     environment: "node",
   },
 });
+
