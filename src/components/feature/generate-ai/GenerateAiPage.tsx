@@ -131,6 +131,7 @@ function GenerateAiPageContent() {
     control,
     handleSubmit,
     formState: { isValid, isSubmitting },
+    reset,
     watch,
   } = formInstance;
 

@@ -43,6 +43,23 @@ Następujące funkcjonalności nie wchodzą w zakres MVP i mogą zostać rozważ
   - W przypadku podania błędnych danych, wyświetlany jest odpowiedni komunikat.
   - Użytkownik może się wylogować z aplikacji.
 
+- ID: US-010
+- Tytuł: Resetowanie hasła
+- Opis: Jako użytkownik, który utracił dostęp do konta, chcę otrzymać link resetujący i ustawić nowe hasło, aby odzyskać możliwość korzystania z aplikacji.
+- Kryteria akceptacji:
+  - Na stronie logowania znajduje się akcja „Resetuj hasło”, która po podaniu adresu e-mail wysyła przez Supabase link resetujący (komunikat nie ujawnia, czy konto istnieje).
+  - Link z wiadomości przenosi użytkownika na stronę `/reset-password`, gdzie wprowadza nowe hasło oraz jego potwierdzenie.
+  - W przypadku braku lub wygaśnięcia tokenu resetującego użytkownik otrzymuje informację o konieczności ponownej prośby o reset.
+  - Po pomyślnym ustawieniu hasła użytkownik jest przekierowany do strony logowania.
+
+- ID: US-011
+- Tytuł: Wylogowanie i bezpieczeństwo sesji
+- Opis: Jako użytkownik, chcę mieć możliwość wylogowania się i pewność, że zasoby aplikacji są dostępne tylko dla zalogowanych osób.
+- Kryteria akceptacji:
+  - W głównym interfejsie (menu użytkownika w `Layout.astro`) znajduje się akcja „Wyloguj”, która natychmiast usuwa token sesji i przenosi użytkownika na stronę logowania.
+  - Dostęp do widoków i operacji na zestawach, fiszkach oraz generatorach (manualny i AI) wymaga aktywnej sesji – bez ważnego tokenu użytkownik jest przekierowywany na `/login`.
+  - W przypadku błędu autoryzacji (np. wygasły token) użytkownik otrzymuje komunikat i zostaje poproszony o ponowne logowanie.
+
 ### Zarządzanie Fiszkami
 - ID: US-003
 - Tytuł: Generowanie fiszek przez AI
