@@ -88,7 +88,7 @@ function createDraftFromForm(values: AiGenerationFormState): AiGenerationResultS
   };
 }
 
-xsfunction mapFlashcardsWithIds(cards: { front: string; back: string }[]): AiGenerationResultState["flashcards"] {
+function mapFlashcardsWithIds(cards: { front: string; back: string }[]): AiGenerationResultState["flashcards"] {
   return cards.map((card, index) => ({
     id: typeof crypto !== "undefined" && "randomUUID" in crypto ? crypto.randomUUID() : `card-${Date.now()}-${index}`,
     front: card.front,
@@ -131,7 +131,6 @@ function GenerateAiPageContent() {
     control,
     handleSubmit,
     formState: { isValid, isSubmitting },
-    reset,
     watch,
   } = formInstance;
 
