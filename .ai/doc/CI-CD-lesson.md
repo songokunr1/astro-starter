@@ -627,7 +627,7 @@ Organization Secrets - Dzielone między repozytoria
 **Nasz przykład:**
 ```yaml
 e2e-test:
-  environment: integration  # Używa sekretów z env "integration"
+  environment: fishkiAI  # Używa sekretów z env "fishkiAI"
   steps:
     - run: |
         echo "PUBLIC_SUPABASE_URL=${{ secrets.PUBLIC_SUPABASE_URL }}" >> .env.test
