@@ -7,3 +7,4 @@
 .env.local
 .env.*.local
 auth.ps1
+.env.test

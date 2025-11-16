@@ -39,7 +39,7 @@ export async function fetchFlashcardSets(token: string): Promise<FlashcardSetSum
 
 export async function fetchLearningSessionCards(
   token: string,
-  params: { setId: string; limit: number },
+  params: { setId: string; limit: number }
 ): Promise<LearningSessionFlashcardDto[]> {
   const search = new URLSearchParams({
     setId: params.setId,
@@ -146,8 +146,7 @@ function LearnPageContent() {
   const selectedSet = useMemo(() => sets?.find((set) => set.id === selectedSetId), [sets, selectedSetId]);
 
   const startSessionMutation = useMutation({
-    mutationFn: (variables: { setId: string; limit: number }) =>
-      fetchLearningSessionCards(token as string, variables),
+    mutationFn: (variables: { setId: string; limit: number }) => fetchLearningSessionCards(token as string, variables),
     onSuccess: (cards) => {
       if (cards.length === 0) {
         toast.info("Brak fiszek do powtórki w tym zestawie.");
@@ -240,7 +239,7 @@ function LearnPageContent() {
         quality,
       });
     },
-    [activeCard, reviewMutation],
+    [activeCard, reviewMutation]
   );
 
   useEffect(() => {
@@ -468,7 +467,7 @@ function LearnPageContent() {
                   <div
                     className={cn(
                       "rounded-lg border border-border bg-muted/30 p-4 text-base leading-relaxed transition-all",
-                      isAnswerVisible ? "text-foreground" : "text-muted-foreground blur-sm",
+                      isAnswerVisible ? "text-foreground" : "text-muted-foreground blur-sm"
                     )}
                   >
                     {activeCard.back}
@@ -540,5 +539,3 @@ export default function LearnPage() {
     </AuthenticatedShell>
   );
 }
-
-

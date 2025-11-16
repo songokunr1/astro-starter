@@ -10,7 +10,7 @@ describe("sm2", () => {
         repetitions: 0,
         easeFactor: 2.5,
         interval: 0,
-      }),
+      })
     ).toThrow(/quality/i);
   });
 
@@ -68,5 +68,3 @@ describe("sm2", () => {
     expect(result.easeFactor).toBeGreaterThanOrEqual(1.3);
   });
 });
-
-

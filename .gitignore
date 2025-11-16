@@ -17,6 +17,10 @@ pnpm-debug.log*
 .env
 .env.production
 
+# test coverage
+coverage/
+*.lcov
+
 # macOS-specific files
 .DS_Store
 
@@ -27,3 +31,4 @@ pnpm-debug.log*
 *key-from-backend.md
 .ai/test/*
 .ai/test/api/auth.ps1
+.env.test

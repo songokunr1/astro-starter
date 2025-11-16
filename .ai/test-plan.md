@@ -8,11 +8,12 @@ Celem testów jest potwierdzenie, że aplikacja Fiszki AI spełnia wymagania PRD
 - Backend API (Astro API routes + Supabase): logowanie, zestawy, fiszki, AI proxy, learning session.
 - Integracje: Supabase auth/RLS, RPC `create_set_with_flashcards`, zewnętrzne API LLM (stubowane w testach).
 
-Poza zakresem: pełne testy wydajności produkcyjnej, testy E2E z prawdziwą usługą email/SMTP oraz manualne testy mobile.
+Poza zakresem: pełne testy wydajności produkcyjnej, testy integracyjne z prawdziwą usługą email/SMTP oraz manualne testy mobile.
 
 ## 3. Typy testów
 - **Testy jednostkowe (Vitest)**: czysta logika (`sm2`, helpery learningService, walidacje formularzy).
 - **Testy helperów HTTP/React (Vitest + mock `fetch`)**: funkcje `fetchFlashcardSets`, `fetchLearningSessionCards`, `submitReviewRequest`.
+- **Testy E2E (Playwright)**: pełny przepływ użytkownika od logowania, przez tworzenie zestawów, aż po dodawanie fiszek w prawdziwej przeglądarce.
 - **Testy dostępności/manualne smoke**: upewnienie się, że kluczowe ścieżki mają etykiety i focus states (wg frontend guidelines).
 
 ## 4. Scenariusze testowe kluczowych funkcjonalności
@@ -43,14 +44,53 @@ Poza zakresem: pełne testy wydajności produkcyjnej, testy E2E z prawdziwą us�
       - Edge cases: brak fiszek (toast), utrata tokenu (redirect), wielokrotne szybkie kliknięcia ratingów.
 6. **Reset hasła (po wdrożeniu)** – link Supabase, formularz `/reset-password`.
 
+## 4.1. Testy E2E (Playwright) – szczegóły
+
+### Test: Set and Flashcard Creation Flow
+**Lokalizacja:** `tests/e2e/set-creation.spec.ts`
+
+**Przepływ:**
+1. **Logowanie** – nawigacja do `/login`, wypełnienie formularza danymi z `.env.test`, weryfikacja przekierowania na `/generate`
+2. **Tworzenie zestawu** – kliknięcie "New set", wypełnienie formularza (nazwa + opis), weryfikacja toastu "Set created", pozostanie na `/generate`
+3. **Dodawanie fiszki** – wypełnienie pól "Question or prompt" i "Answer", kliknięcie "Add flashcard", weryfikacja widoczności fiszki
+
+**Wymagania:**
+- Plik `.env.test` z zmiennymi: `PUBLIC_SUPABASE_URL`, `PUBLIC_SUPABASE_ANON_KEY`, `E2E_USERNAME`, `E2E_PASSWORD`
+- Dane użytkownika muszą istnieć w testowej bazie Supabase
+
+**Uruchomienie:**
+```bash
+# Headless (domyślny)
+npm run test:e2e -- tests/e2e/set-creation.spec.ts
+
+# Z widoczną przeglądarką (headed)
+npm run test:e2e -- tests/e2e/set-creation.spec.ts --headed
+
+# Interaktywny UI
+npm run test:e2e -- tests/e2e/set-creation.spec.ts --ui
+```
+
+**Konfiguracja:** 
+- Timeout: 30s na test, retries: 2
+- Port: 3001 (zgodny z Astro)
+- Automatyczne uruchamianie serwera deweloperskiego
+
+**Status:** ✅ Test stabilny z mechanizmem retry (może być "flaky" w pierwszej próbie ze względu na opóźnienia sieciowe)
+
+**Szczegółowa dokumentacja:** Zobacz `.ai/test-plan-e2e.md`
+
 ## 5. Środowisko testowe
 - Node.js 20 + pnpm/npm zgodnie z repo.
 - Vitest + jsdom dla testów UI; `@testing-library/react` do renderów.
-- Supabase test project lub lokalny supabase docker (migracje z folderu `supabase/migrations`).
-- Pliki `.env` testowe z mockowymi kluczami (np. `OPENROUTER_API_KEY=stub`).
+- Playwright + Chromium dla testów E2E (instalacja automatyczna przy `npm install`).
+- Supabase test project (zdalny) dla testów E2E lub lokalny supabase docker dla testów jednostkowych (migracje z folderu `supabase/migrations`).
+- Pliki `.env` testowe:
+  - `.env` – lokalne środowisko deweloperskie (lokalny Supabase)
+  - `.env.test` – środowisko testowe E2E (zdalny projekt Supabase, dane testowe: `E2E_USERNAME`, `E2E_PASSWORD`)
 
 ## 6. Narzędzia do testowania
 - **Vitest** (jednostkowe/integracyjne) – runner, coverage.
+- **Playwright** (E2E) – testy end-to-end w prawdziwej przeglądarce (Chromium).
 - **React Testing Library** – interakcje komponentów.
 - **MSW / fetch-mock** – stuby zewnętrznych API i Supabase.
 - **ESLint + Biome/Tailwind IntelliSense** – statyczna analiza.
@@ -58,18 +98,19 @@ Poza zakresem: pełne testy wydajności produkcyjnej, testy E2E z prawdziwą us�
 
 ## 7. Harmonogram testów
 1. **Tydzień 1**: testy jednostkowe hooków/Auth/AI context; API tests dla `/api/v1/sets`.
-2. **Tydzień 2**: scenariusze `/generate`, `/sets`, `/sets/:id`.
-3. **Tydzień 3**: learning flow + AI endpoints; smoke test dostępności.
-4. **Przed wydaniem**: regresja (uruchomienie wszystkich testów Vitest + manualny smoke UI).
+2. **Tydzień 2**: scenariusze `/generate`, `/sets`, `/sets/:id`; pierwszy test E2E (logowanie → tworzenie zestawu → dodawanie fiszki).
+3. **Tydzień 3**: learning flow + AI endpoints; smoke test dostępności; rozszerzenie testów E2E (edycja, usuwanie).
+4. **Przed wydaniem**: regresja (uruchomienie wszystkich testów Vitest + Playwright + manualny smoke UI).
 
 ## 8. Kryteria akceptacji
-- 100% testów Vitest przechodzi w CI (GitHub Actions).
+- 100% testów Vitest i Playwright przechodzi w CI (GitHub Actions). ⚠️ **Do wdrożenia - patrz `.ai/ci-cd-plan.md`**
 - Pokrycie krytycznych modułów (auth, sets, learning, AI) ≥ 80%.
+- Kluczowy test E2E (logowanie → tworzenie zestawu → dodawanie fiszki) przechodzi stabilnie.
 - Brak blockerów w zgłoszonych defektach; otwarte tylko niskie priorytety ze zgodą właściciela produktu.
 
 ## 9. Role i odpowiedzialności
-- **QA/Dev**: pisanie i utrzymanie testów Vitest, przygotowanie mocków Supabase.
-- **Tech Lead**: zatwierdzenie zakresu testów, review pull requestów.
+- **QA/Dev**: pisanie i utrzymanie testów Vitest i Playwright, przygotowanie mocków Supabase, konfiguracja środowiska testowego (`.env.test`).
+- **Tech Lead**: zatwierdzenie zakresu testów, review pull requestów, monitoring stabilności testów E2E.
 - **Product Owner**: akceptacja kryteriów i decyzje o ryzykach.
 
 ## 10. Procedury raportowania błędów
