@@ -13,6 +13,7 @@ Projekt zawiera workflow `pull-request.yml`, który automatycznie uruchamia się
 3. **E2E Tests** (równolegle) - Testy end-to-end z Playwright
 4. **Status Comment** - Automatyczny komentarz w PR z podsumowaniem statusu
 
+
 ```mermaid
 graph TD
     A[Pull Request] --> B[Lint & Format Check]
