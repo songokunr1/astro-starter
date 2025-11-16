@@ -96,6 +96,14 @@ jobs:
       - name: Install Playwright browsers (Chromium)
         run: npx playwright install --with-deps chromium
 
+      - name: Debug credentials (first 3 chars)
+        run: |
+          echo "E2E_USERNAME (first 3): ${E2E_USERNAME:0:3}***"
+          echo "E2E_PASSWORD (first 3): ${E2E_PASSWORD:0:3}***"
+        env:
+          E2E_USERNAME: ${{ secrets.E2E_USERNAME }}
+          E2E_PASSWORD: ${{ secrets.E2E_PASSWORD }}
+
       - name: Create .env.test file from secrets
         run: |
           echo "SUPABASE_URL=${{ secrets.PUBLIC_SUPABASE_URL }}" >> .env.test
