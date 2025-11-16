@@ -64,13 +64,13 @@ Pobierz z ustawień swojego projektu Supabase (Settings → API):
    - Secret: wartość sekretu
    - Kliknij **Add secret**
 
-## Konfiguracja Środowiska "integration"
+## Konfiguracja Środowiska "fishkiAI"
 
-Workflow używa środowiska GitHub o nazwie `integration` dla testów E2E. Aby je skonfigurować:
+Workflow używa środowiska GitHub o nazwie `fishkiAI` dla testów E2E. Aby je skonfigurować:
 
 1. Przejdź do **Settings** → **Environments**
 2. Kliknij **New environment**
-3. Nazwa: `integration`
+3. Nazwa: `fishkiAI`
 4. Opcjonalnie możesz dodać:
    - Protection rules (wymagane recenzje przed uruchomieniem)
    - Environment secrets (sekrety specyficzne dla środowiska)
