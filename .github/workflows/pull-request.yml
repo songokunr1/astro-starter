@@ -100,7 +100,6 @@ jobs:
         run: |
           echo "E2E_USERNAME (first 3): ${E2E_USERNAME:0:3}***"
           echo "E2E_PASSWORD (first 3): ${E2E_PASSWORD:0:3}***"
-          echo "SUPABASE_URL (first 30): ${SUPABASE_URL:0:30}***"
           echo "SUPABASE_KEY (first 10): ${SUPABASE_KEY:0:10}***"
         env:
           E2E_USERNAME: ${{ secrets.E2E_USERNAME }}
