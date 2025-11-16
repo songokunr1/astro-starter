@@ -16,7 +16,7 @@ import { add } from "date-fns/add";
 export async function getReviewSession(
   supabase: SupabaseClient,
   userId: string,
-  options: { setId?: string; limit: number },
+  options: { setId?: string; limit: number }
 ): Promise<{ data: LearningSessionFlashcardDto[] | null; error: any }> {
   const { setId, limit } = options;
 
@@ -32,7 +32,7 @@ export async function getReviewSession(
         back,
         flashcard_set_id
       )
-    `,
+    `
     )
     .eq("user_id", userId)
     .lte("next_review_date", new Date().toISOString())
@@ -84,7 +84,7 @@ export async function getReviewSession(
 async function getFallbackFlashcards(
   supabase: SupabaseClient,
   userId: string,
-  options: { setId?: string; limit: number },
+  options: { setId?: string; limit: number }
 ): Promise<{ data: LearningSessionFlashcardDto[]; error: any }> {
   // Fallback attempts to fetch plain flashcards when the spaced-repetition schedule is empty.
   const { setId, limit } = options;
@@ -105,7 +105,7 @@ async function getFallbackFlashcards(
       flashcard_set:flashcard_sets!inner (
         user_id
       )
-    `,
+    `
     )
     .eq("flashcard_set_id", setId)
     .eq("flashcard_set.user_id", userId)
@@ -136,7 +136,7 @@ const DEFAULT_EASE_FACTOR = 2.5;
 export async function submitReview(
   supabase: SupabaseClient,
   userId: string,
-  command: SubmitReviewCommand,
+  command: SubmitReviewCommand
 ): Promise<{ data: SubmitReviewResponseDto | null; error: any }> {
   const { flashcard_id, quality } = command;
 

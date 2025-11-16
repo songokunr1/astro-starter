@@ -54,7 +54,7 @@ export const GET: APIRoute = async ({ url, locals }) => {
       status: 200,
       headers: { "Content-Type": "application/json" },
     });
-  } catch (error) {
+  } catch (_error) {
     // 5. Handle potential server errors
     // In a real app, log this error to a monitoring service
     console.error("Error fetching flashcard sets:", error);
@@ -82,7 +82,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
   let command: CreateFlashcardSetCommand;
   try {
     command = await request.json();
-  } catch (error) {
+  } catch (_error) {
     return new Response(JSON.stringify({ message: "Invalid JSON body" }), { status: 400 });
   }
 

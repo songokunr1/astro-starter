@@ -100,4 +100,3 @@ export function AuthenticatedShell({ children }: ShellProps) {
 }
 
 export default AuthenticatedShell;
-

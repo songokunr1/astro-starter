@@ -1,4 +1,3 @@
-
 import type { APIRoute } from "astro";
 import { submitReview } from "@/lib/services/learningService";
 import { SubmitReviewCommandSchema } from "@/lib/schemas";
@@ -18,7 +17,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
   let body;
   try {
     body = await request.json();
-  } catch (error) {
+  } catch (_error) {
     return new Response(JSON.stringify({ message: "Invalid JSON body" }), {
       status: 400,
       headers: { "Content-Type": "application/json" },
@@ -39,11 +38,12 @@ export const POST: APIRoute = async ({ request, locals }) => {
   if (error) {
     console.error("Error submitting review:", error);
     // Basic error handling, can be improved to map specific DB errors to HTTP statuses
-    if (error.code === "23503") { // foreign key violation
-        return new Response(JSON.stringify({ message: "Flashcard not found" }), {
-            status: 404,
-            headers: { "Content-Type": "application/json" },
-        });
+    if (error.code === "23503") {
+      // foreign key violation
+      return new Response(JSON.stringify({ message: "Flashcard not found" }), {
+        status: 404,
+        headers: { "Content-Type": "application/json" },
+      });
     }
     return new Response(JSON.stringify({ message: "Internal Server Error" }), {
       status: 500,

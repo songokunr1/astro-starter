@@ -38,7 +38,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
   let command: AcceptFlashcardsCommand;
   try {
     command = await request.json();
-  } catch (error) {
+  } catch (_error) {
     return new Response(JSON.stringify({ message: "Invalid JSON body" }), {
       status: 400,
     });

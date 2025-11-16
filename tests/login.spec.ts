@@ -13,14 +13,20 @@ test.describe("Authentication", () => {
       throw new Error("E2E_USERNAME and E2E_PASSWORD environment variables must be set in .env.test");
     }
 
+    // Wait for page to be fully loaded
+    await page.waitForLoadState("networkidle");
+
     // Fill in the form
     await page.getByLabel("Email").fill(username);
     await page.getByLabel("Hasło").fill(password);
 
-    // Click the login button
-    await page.getByRole("button", { name: "Log in" }).click();
+    // Click the login button and wait for navigation
+    await Promise.all([
+      page.waitForURL("/generate", { timeout: 20000 }),
+      page.getByRole("button", { name: "Log in" }).click(),
+    ]);
 
     // Assert that the user is redirected to the generate page
-    await expect(page).toHaveURL("/generate", { timeout: 10000 });
+    await expect(page).toHaveURL("/generate");
   });
 });
