@@ -31,6 +31,8 @@ export default defineConfig({
   use: {
     baseURL,
     trace: "retry-with-trace",
+    actionTimeout: 15000, // Więcej czasu na pojedyncze akcje
+    navigationTimeout: 20000, // Więcej czasu na nawigację
   },
 
   projects: [

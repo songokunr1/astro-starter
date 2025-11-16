@@ -7,7 +7,7 @@ test.describe("Set and Flashcard Creation", () => {
 
     // Step 1: Log in
     console.log("Navigating to login page...");
-    await page.goto("/login");
+    await page.goto("/login", { waitUntil: "networkidle" });
     console.log("Login page loaded.");
 
     const username = process.env.E2E_USERNAME;
@@ -28,12 +28,17 @@ test.describe("Set and Flashcard Creation", () => {
     console.log("Credentials filled.");
 
     console.log("Clicking login button...");
-    await page.getByRole("button", { name: "Log in" }).click();
-    console.log("Login button clicked. Waiting for redirection to /generate...");
+
+    // Wait for both navigation and button to complete
+    await Promise.all([
+      page.waitForURL("/generate", { timeout: 20000 }),
+      page.getByRole("button", { name: "Log in" }).click(),
+    ]);
+
+    console.log("Login button clicked and redirected to /generate.");
 
     // Wait for the "New set" button to be visible (confirms successful login)
-    // Increased timeout for slower network/authentication
-    await page.getByRole("button", { name: "New set" }).waitFor({ state: "visible", timeout: 15000 });
+    await page.getByRole("button", { name: "New set" }).waitFor({ state: "visible", timeout: 10000 });
     console.log("'New set' button is visible - login successful.");
 
     await expect(page).toHaveURL("/generate");
