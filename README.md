@@ -58,16 +58,43 @@ To run the project locally, follow these steps.
 
 3.  **Set up environment variables:**
 
-    Create a `.env` file in the root of the project and add the necessary environment variables for Supabase and OpenRouter.
+    Create a `.env` file in the root of the project with the following variables:
 
     ```env
-    # Supabase
-    PUBLIC_SUPABASE_URL=your-supabase-url
+    # Supabase Configuration (Required)
+    SUPABASE_URL=https://your-project-id.supabase.co
+    SUPABASE_KEY=your-supabase-service-role-key
+    
+    # Public Supabase Configuration (Required for client-side auth)
+    PUBLIC_SUPABASE_URL=https://your-project-id.supabase.co
     PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key
-
-    # OpenRouter
+    
+    # OpenRouter API (Required for AI flashcard generation)
     OPENROUTER_API_KEY=your-openrouter-api-key
     ```
+
+    For **E2E tests**, create a `.env.test` file with all variables:
+
+    ```env
+    # Supabase Configuration
+    SUPABASE_URL=https://your-project-id.supabase.co
+    SUPABASE_KEY=your-supabase-service-role-key
+    SUPABASE_PUBLIC_KEY=your-supabase-anon-key
+    
+    # Public Supabase Configuration
+    PUBLIC_SUPABASE_URL=https://your-project-id.supabase.co
+    PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key
+    
+    # OpenRouter API
+    OPENROUTER_API_KEY=your-openrouter-api-key
+    
+    # E2E Test Credentials
+    E2E_USERNAME=test@example.com
+    E2E_PASSWORD=your-test-password
+    E2E_USERNAME_ID=test-user-uuid-from-supabase
+    ```
+
+    > **Note**: The E2E test user must exist in your Supabase database. `E2E_USERNAME_ID` is the UUID of the test user from Supabase auth.users table. See [Test Setup Guide](./doc/guide/github-actions-setup.md) for details.
 
 4.  **Run the development server:**
 
@@ -87,6 +114,9 @@ The following scripts are available in the `package.json`:
 -   `npm run lint`: Lints the codebase for errors.
 -   `npm run lint:fix`: Lints the codebase and automatically fixes issues.
 -   `npm run format`: Formats the code using Prettier.
+-   `npm run test`: Runs unit tests with Vitest.
+-   `npm run test:coverage`: Runs unit tests with coverage report.
+-   `npm run test:e2e`: Runs end-to-end tests with Playwright.
 
 ## Project Scope
 
@@ -109,6 +139,35 @@ The following scripts are available in the `package.json`:
 -   Integrations with external educational platforms.
 -   Dedicated mobile applications for iOS and Android.
 
+## Application Structure
+
+### Routing & Security
+
+-   **Public Routes**: `/login`, `/register`, `/reset-password`
+-   **Protected Routes**: All other routes require authentication
+-   **Root Redirect**: The root path `/` automatically redirects to `/login` for security
+-   **JWT Storage**: Authentication tokens are stored in `sessionStorage` (not displayed in UI for security)
+
+### Key Pages
+
+-   `/login` - User authentication
+-   `/generate` - Manual flashcard creation
+-   `/generate-ai` - AI-powered flashcard generation (planned)
+-   `/sets` - View and manage flashcard sets
+-   `/learn` - Spaced repetition learning session
+
+## Testing
+
+The project includes comprehensive test coverage:
+
+-   **Unit Tests**: Run with `npm run test` (Vitest)
+-   **E2E Tests**: Run with `npm run test:e2e` (Playwright)
+-   **Coverage Report**: Generate with `npm run test:coverage`
+
+Before running E2E tests, ensure you have:
+1. Created a test user in your Supabase database
+2. Set up `.env.test` with `E2E_USERNAME` and `E2E_PASSWORD`
+
 ## Project Status
 
 **In Development**: The project is currently under active development, with a focus on delivering the MVP features.
@@ -116,4 +175,3 @@ The following scripts are available in the `package.json`:
 ## License
 
 This project is licensed under the **MIT License**. See the `LICENSE` file for more details.
-# Test CI
