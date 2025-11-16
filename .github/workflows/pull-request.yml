@@ -98,8 +98,8 @@ jobs:
 
       - name: Create .env.test file from secrets
         run: |
-          echo "PUBLIC_SUPABASE_URL=${{ secrets.PUBLIC_SUPABASE_URL }}" >> .env.test
-          echo "PUBLIC_SUPABASE_ANON_KEY=${{ secrets.PUBLIC_SUPABASE_ANON_KEY }}" >> .env.test
+          echo "SUPABASE_URL=${{ secrets.PUBLIC_SUPABASE_URL }}" >> .env.test
+          echo "SUPABASE_KEY=${{ secrets.PUBLIC_SUPABASE_ANON_KEY }}" >> .env.test
           echo "PORT=${{ secrets.PORT || 3001 }}" >> .env.test
           echo "E2E_USERNAME=${{ secrets.E2E_USERNAME }}" >> .env.test
           echo "E2E_PASSWORD=${{ secrets.E2E_PASSWORD }}" >> .env.test
@@ -108,8 +108,8 @@ jobs:
         run: npm run test:e2e
         env:
           CI: true
-          PUBLIC_SUPABASE_URL: ${{ secrets.PUBLIC_SUPABASE_URL }}
-          PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.PUBLIC_SUPABASE_ANON_KEY }}
+          SUPABASE_URL: ${{ secrets.PUBLIC_SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.PUBLIC_SUPABASE_ANON_KEY }}
           E2E_USERNAME: ${{ secrets.E2E_USERNAME }}
           E2E_PASSWORD: ${{ secrets.E2E_PASSWORD }}
           PORT: ${{ secrets.PORT || 3001 }}

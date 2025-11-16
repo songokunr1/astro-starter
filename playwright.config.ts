@@ -27,9 +27,9 @@ export default defineConfig({
     timeout: 120 * 1000,
     reuseExistingServer: !process.env.CI,
     env: {
-      PUBLIC_SUPABASE_URL: process.env.PUBLIC_SUPABASE_URL || '',
-      PUBLIC_SUPABASE_ANON_KEY: process.env.PUBLIC_SUPABASE_ANON_KEY || '',
-      PORT: process.env.PORT || '3001',
+      SUPABASE_URL: process.env.SUPABASE_URL || "",
+      SUPABASE_KEY: process.env.SUPABASE_KEY || "",
+      PORT: process.env.PORT || "3001",
     },
   },
 
