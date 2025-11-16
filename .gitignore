@@ -32,3 +32,4 @@ coverage/
 .ai/test/*
 .ai/test/api/auth.ps1
 .env.test
+test-results*
