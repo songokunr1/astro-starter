@@ -1,8 +1,12 @@
 ---
-import Welcome from "../components/Welcome.astro";
 import Layout from "../layouts/Layout.astro";
 ---
 
-<Layout>
-  <Welcome />
+<Layout title="Fiszki AI">
+  <script>
+    window.location.replace("/login");
+  </script>
+  <main class="flex min-h-screen items-center justify-center">
+    <p class="text-sm text-muted-foreground">Redirecting...</p>
+  </main>
 </Layout>

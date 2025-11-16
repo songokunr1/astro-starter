@@ -602,13 +602,6 @@ function GeneratePageContent() {
         <p className="text-muted-foreground">Create a new flashcard manually or add it to one of your existing sets.</p>
       </div>
 
-      <div className="w-full max-w-3xl">
-        <p className="mb-2 text-xs uppercase text-muted-foreground">JWT token</p>
-        <pre className="max-h-28 overflow-auto whitespace-pre-wrap break-all rounded-md border border-border bg-muted/60 p-3 text-xs">
-          {token}
-        </pre>
-      </div>
-
       <ManualFlashcardForm token={token} />
     </main>
   );
