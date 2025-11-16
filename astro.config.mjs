@@ -1,5 +1,6 @@
 // @ts-check
 import { defineConfig } from "astro/config";
+import { fileURLToPath } from "node:url";
 
 import react from "@astrojs/react";
 import sitemap from "@astrojs/sitemap";
@@ -13,6 +14,11 @@ export default defineConfig({
   server: { port: 3001, host: true },
   vite: {
     plugins: [tailwindcss()],
+    resolve: {
+      alias: {
+        "@": fileURLToPath(new URL("./src", import.meta.url)),
+      },
+    },
   },
   adapter: node({
     mode: "standalone",

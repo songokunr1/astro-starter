@@ -91,10 +91,13 @@ export type AcceptFlashcardsCommand = GenerateFlashcardsResponseDto;
  * Represents a flashcard due for a review session.
  * This is a composite type from `learning_schedules` and `flashcards` tables.
  */
-export type LearningSessionFlashcardDto = Pick<Tables<"flashcards">, "id" | "front" | "back"> & {
+export interface LearningSessionFlashcardDto {
+  id: Tables<"learning_schedules">["id"];
   flashcard_id: Tables<"flashcards">["id"];
+  front: Tables<"flashcards">["front"];
+  back: Tables<"flashcards">["back"];
   next_review_date: Tables<"learning_schedules">["next_review_date"];
-};
+}
 
 /**
  * Command for submitting a flashcard review.
@@ -119,3 +122,21 @@ export type SubmitReviewResponseDto = Pick<
  * `rating` is `1` for a thumbs-up or `-1` for a thumbs-down.
  */
 export type RateFlashcardCommand = Pick<TablesInsert<"flashcard_ratings">, "rating">;
+
+/**
+ * Represents pagination details in a paginated response.
+ */
+export interface Pagination {
+  page: number;
+  pageSize: number;
+  total: number;
+}
+
+/**
+ * A generic container for paginated API responses.
+ * @template T The type of the data items in the response.
+ */
+export interface PaginatedResponseDto<T> {
+  data: T[];
+  pagination: Pagination;
+}
