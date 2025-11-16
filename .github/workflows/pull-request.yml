@@ -108,6 +108,11 @@ jobs:
         run: npm run test:e2e
         env:
           CI: true
+          PUBLIC_SUPABASE_URL: ${{ secrets.PUBLIC_SUPABASE_URL }}
+          PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.PUBLIC_SUPABASE_ANON_KEY }}
+          E2E_USERNAME: ${{ secrets.E2E_USERNAME }}
+          E2E_PASSWORD: ${{ secrets.E2E_PASSWORD }}
+          PORT: ${{ secrets.PORT || 3001 }}
 
       - name: Upload Playwright report
         uses: actions/upload-artifact@v4
