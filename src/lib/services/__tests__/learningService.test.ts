@@ -3,11 +3,14 @@ import { describe, expect, it, vi } from "vitest";
 import type { SupabaseClient } from "@/db/supabase.client";
 import { getReviewSession } from "@/lib/services/learningService";
 
-type QueryResult = { data: any; error: any };
+interface QueryResult {
+  data: any;
+  error: any;
+}
 
 function createSupabaseMock(responses: Record<string, QueryResult[]>) {
   const queues = new Map<string, QueryResult[]>(
-    Object.entries(responses).map(([table, entries]) => [table, [...entries]]),
+    Object.entries(responses).map(([table, entries]) => [table, [...entries]])
   );
 
   function createBuilder(table: string) {
@@ -116,5 +119,3 @@ describe("learningService.getReviewSession", () => {
     ]);
   });
 });
-
-

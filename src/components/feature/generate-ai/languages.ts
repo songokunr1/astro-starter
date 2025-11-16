@@ -39,4 +39,3 @@ export function getQuestionPrefix(languageCode: string) {
       return "What is the key point";
   }
 }
-

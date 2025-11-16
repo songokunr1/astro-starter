@@ -40,35 +40,40 @@ describe("Learn page data helpers", () => {
   });
 
   it("fetchFlashcardSets throws when API responds with error", async () => {
-    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({
-      ok: false,
-      json: () => Promise.resolve({ message: "Failed" }),
-    }));
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: false,
+        json: () => Promise.resolve({ message: "Failed" }),
+      })
+    );
 
     await expect(fetchFlashcardSets(token)).rejects.toThrow(/pobrać listy zestawów/i);
   });
 
   it("fetchLearningSessionCards maps payload correctly", async () => {
     const responsePayload = { data: [{ flashcard_id: "card-1", front: "Q", back: "A" }] };
-    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({
-      ok: true,
-      json: () => Promise.resolve(responsePayload),
-    }));
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: () => Promise.resolve(responsePayload),
+      })
+    );
 
     const result = await fetchLearningSessionCards(token, { setId: "set-1", limit: 5 });
     expect(result).toEqual(responsePayload.data);
   });
 
   it("submitReviewRequest throws on server error", async () => {
-    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({
-      ok: false,
-      json: () => Promise.resolve({ message: "Internal error" }),
-    }));
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: false,
+        json: () => Promise.resolve({ message: "Internal error" }),
+      })
+    );
 
-    await expect(
-      submitReviewRequest(token, { flashcard_id: "card", quality: 3 }),
-    ).rejects.toThrow(/internal error/i);
+    await expect(submitReviewRequest(token, { flashcard_id: "card", quality: 3 })).rejects.toThrow(/internal error/i);
   });
 });
-
-

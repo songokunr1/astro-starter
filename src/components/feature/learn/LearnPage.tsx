@@ -168,7 +168,7 @@ function LearnPageContent() {
 
   const reviewMutation = useMutation({
     mutationFn: (payload: SubmitReviewCommand) => submitReviewRequest(token as string, payload),
-    onSuccess: (_, variables) => {
+    onSuccess: () => {
       setSessionQueue((prev) => prev.slice(1));
       setReviewedCount((prev) => {
         const next = prev + 1;

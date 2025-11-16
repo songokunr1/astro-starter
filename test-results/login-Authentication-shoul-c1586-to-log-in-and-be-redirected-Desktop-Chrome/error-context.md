@@ -1,0 +1,43 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - main [ref=e3]:
+      - generic [ref=e5]:
+        - generic [ref=e6]:
+          - generic [ref=e7]: Logowanie
+          - generic [ref=e8]: Wprowadź swoje dane, aby zalogować się na konto. Użyj danych testowych.
+        - generic [ref=e9]:
+          - generic [ref=e10]:
+            - generic [ref=e11]:
+              - text: Email
+              - textbox "Email" [ref=e12]:
+                - /placeholder: name@example.com
+            - generic [ref=e13]:
+              - text: Hasło
+              - textbox "Hasło" [ref=e14]:
+                - /placeholder: "********"
+            - button "Log in" [ref=e15]
+          - button "Resetuj hasło" [ref=e17]
+          - generic [ref=e18]:
+            - text: Nie masz konta?
+            - link "Zarejestruj się" [ref=e19] [cursor=pointer]:
+              - /url: /register
+    - region "Notifications alt+T"
+  - generic [ref=e22]:
+    - button "Menu" [ref=e23]:
+      - img [ref=e25]
+      - generic: Menu
+    - button "Inspect" [ref=e29]:
+      - img [ref=e31]
+      - generic: Inspect
+    - button "Audit" [ref=e33]:
+      - generic [ref=e34]:
+        - img [ref=e35]
+        - img [ref=e38]
+      - generic: Audit
+    - button "Settings" [ref=e41]:
+      - img [ref=e43]
+      - generic: Settings
+```

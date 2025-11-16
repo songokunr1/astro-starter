@@ -12,13 +12,10 @@ const UpdateFlashcardCommandSchema = z
     back: z.string().max(200, "Back cannot exceed 200 characters.").optional(),
     media_url: z.string().url("Media URL must be a valid URL.").nullable().optional(),
   })
-  .refine(
-    (data) => data.front !== undefined || data.back !== undefined || data.media_url !== undefined,
-    {
-      message: "At least one field (front, back, or media_url) must be provided for an update.",
-      path: [],
-    }
-  );
+  .refine((data) => data.front !== undefined || data.back !== undefined || data.media_url !== undefined, {
+    message: "At least one field (front, back, or media_url) must be provided for an update.",
+    path: [],
+  });
 
 export const PATCH: APIRoute = async ({ params, request, locals }) => {
   const { flashcardId } = params;
@@ -36,7 +33,7 @@ export const PATCH: APIRoute = async ({ params, request, locals }) => {
   let body;
   try {
     body = await request.json();
-  } catch (e) {
+  } catch (_e) {
     return new Response(JSON.stringify({ error: { message: "Invalid JSON body." } }), { status: 400 });
   }
 
