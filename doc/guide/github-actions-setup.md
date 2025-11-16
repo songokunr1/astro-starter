@@ -200,3 +200,11 @@ Workflow znajduje się w `.github/workflows/pull-request.yml`. Możesz dostosowa
 
 Workflow automatycznie wykryje i uruchomi nowe testy.
 
+## Testowanie CI/CD
+
+Aby przetestować czy workflow działa poprawnie:
+1. Stwórz nowy branch z małą zmianą
+2. Utwórz Pull Request do `master` lub `main`
+3. Sprawdź czy workflow się uruchamia automatycznie
+4. Obserwuj status poszczególnych kroków w zakładce "Actions"
+
