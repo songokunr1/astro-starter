@@ -106,13 +106,18 @@ jobs:
           SUPABASE_URL: ${{ secrets.PUBLIC_SUPABASE_URL }}
           SUPABASE_KEY: ${{ secrets.PUBLIC_SUPABASE_ANON_KEY }}
 
-      - name: Create .env.test file from secrets
+      - name: Create .env.test file from secrets (1:1 mapping)
         run: |
-          echo "SUPABASE_URL=${{ secrets.SUPABASE_URL || secrets.PUBLIC_SUPABASE_URL }}" >> .env.test
-          echo "SUPABASE_KEY=${{ secrets.SUPABASE_KEY || secrets.PUBLIC_SUPABASE_ANON_KEY || secrets.SUPABASE_PUBLIC_KEY }}" >> .env.test
-          echo "PORT=${{ secrets.PORT || 3001 }}" >> .env.test
+          echo "SUPABASE_URL=${{ secrets.SUPABASE_URL }}" >> .env.test
+          echo "PUBLIC_SUPABASE_URL=${{ secrets.PUBLIC_SUPABASE_URL }}" >> .env.test
+          echo "SUPABASE_KEY=${{ secrets.SUPABASE_KEY }}" >> .env.test
+          echo "PUBLIC_SUPABASE_ANON_KEY=${{ secrets.PUBLIC_SUPABASE_ANON_KEY }}" >> .env.test
+          echo "SUPABASE_PUBLIC_KEY=${{ secrets.SUPABASE_PUBLIC_KEY }}" >> .env.test
           echo "E2E_USERNAME=${{ secrets.E2E_USERNAME }}" >> .env.test
           echo "E2E_PASSWORD=${{ secrets.E2E_PASSWORD }}" >> .env.test
+          echo "E2E_USERNAME_ID=${{ secrets.E2E_USERNAME_ID }}" >> .env.test
+          echo "OPENROUTER_API_KEY=${{ secrets.OPENROUTER_API_KEY }}" >> .env.test
+          echo "PORT=${{ secrets.PORT || 3001 }}" >> .env.test
 
       - name: Verify .env.test file contents
         run: |
@@ -127,10 +132,15 @@ jobs:
         run: npm run test:e2e
         env:
           CI: true
-          SUPABASE_URL: ${{ secrets.SUPABASE_URL || secrets.PUBLIC_SUPABASE_URL }}
-          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY || secrets.PUBLIC_SUPABASE_ANON_KEY || secrets.SUPABASE_PUBLIC_KEY }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          PUBLIC_SUPABASE_URL: ${{ secrets.PUBLIC_SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+          PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.PUBLIC_SUPABASE_ANON_KEY }}
+          SUPABASE_PUBLIC_KEY: ${{ secrets.SUPABASE_PUBLIC_KEY }}
           E2E_USERNAME: ${{ secrets.E2E_USERNAME }}
           E2E_PASSWORD: ${{ secrets.E2E_PASSWORD }}
+          E2E_USERNAME_ID: ${{ secrets.E2E_USERNAME_ID }}
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
           PORT: ${{ secrets.PORT || 3001 }}
 
       - name: Upload Playwright report
